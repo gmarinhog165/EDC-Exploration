@@ -1,0 +1,17 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "@type": "https://w3id.org/edc/v0.0.1/ns/ContractDefinition",
+  "@id": "1",
+  "accessPolicyId": "time-constraint-policy",
+  "contractPolicyId": "time-constraint-policy",
+  "assetsSelector": [
+    {
+      "@type": "CriterionDto",
+      "operandLeft": "id",
+      "operator": "=",
+      "operandRight": "test-document"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "@id": "time-constraint-policy",
+  "@type": "PolicyDefinition",
+  "policy": {
+    "@context": "http://www.w3.org/ns/odrl.jsonld",
+    "@type": "Set",
+    "permission": [
+      {
+        "action": "use",
+        "constraint": {
+          "and": [
+            {
+              "leftOperand": "currentTime",
+              "operator": "odrl:gteq",
+              "rightOperand": "2024-11-26T18:00:00Z"
+            },
+            {
+              "leftOperand": "currentTime",
+              "operator": "odrl:lteq",
+              "rightOperand": "2024-11-26T19:00:00Z"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+  },
+  "@type": "ContractRequest",
+  "counterPartyAddress": "http://localhost:19194/protocol",
+  "protocol": "dataspace-protocol-http",
+  "policy": {
+    "@context": "http://www.w3.org/ns/odrl.jsonld",
+    "@type": "Offer",
+    "@id": "MQ==:dGVzdC1kb2N1bWVudA==:YmJmMjA4MDYtYWMyZS00OTJmLWFkYmQtZDY0ZTJmNjQxZjli",
+    "permission": [
+      {
+        "target": "test-document", 
+        "action": "use",
+        "constraint": {
+          "and": [
+            {
+              "leftOperand": "currentTime",
+              "operator": "odrl:gteq",
+              "rightOperand": "2024-11-20T17:00:00Z"
+            },
+            {
+              "leftOperand": "currentTime",
+              "operator": "odrl:lteq",
+              "rightOperand": "2024-11-20T18:00:00Z"
+            }
+          ]
+        }
+      }
+    ],
+    "assigner": {
+      "@id": "provider"
+    },
+    "target": {
+      "@id": "test-document"
+    }
+  }
+}
