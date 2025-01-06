@@ -6,10 +6,12 @@ from minio import Minio
 from minio.error import S3Error
 import os
 # Configuration
+IP_ADDRESS = "192.168.112.126"
+
 API_KEY = "password"
-MANAGEMENT_URL = "http://192.168.112.126:29193/management/v3"
-PROVIDER_URL = "http://192.168.112.126:19194/protocol"
-MINIO_URL = "192.168.112.126:9000"
+MANAGEMENT_URL = f"http://{IP_ADDRESS}:29193/management/v3"
+PROVIDER_URL = f"http://{IP_ADDRESS}:19194/protocol"
+MINIO_URL = f"{IP_ADDRESS}:9000"
 MINIO_ACCESS_KEY = "consumer"
 MINIO_SECRET_KEY = "password"
 MINIO_BUCKET_NAME = "src-bucket"
