@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.21.1">
+<file name="/home/gsd/MinimumViableDataspace/extensions/catalog-node-resolver/src/main/java/org/eclipse/edc/demo/participants/resolver/LazyLoadNodeDirectory.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/catalog-node-resolver/src/main/java/org/eclipse/edc/demo/participants/ParticipantsResolverExtension.java">
+</file>
+</checkstyle>

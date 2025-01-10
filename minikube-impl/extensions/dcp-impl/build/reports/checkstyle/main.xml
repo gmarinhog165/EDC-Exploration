@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.21.1">
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/policy/PolicyScopes.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/policy/PolicyEvaluationExtension.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/policy/DataAccessLevelFunction.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/policy/AbstractCredentialEvaluationFunction.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/policy/MembershipCredentialEvaluationFunction.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/core/DataAccessCredentialScopeExtractor.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/core/DcpPatchExtension.java">
+</file>
+<file name="/home/gsd/MinimumViableDataspace/extensions/dcp-impl/src/main/java/org/eclipse/edc/demo/dcp/core/DefaultScopeMappingFunction.java">
+</file>
+</checkstyle>

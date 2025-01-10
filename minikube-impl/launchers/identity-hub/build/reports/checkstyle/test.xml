@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.21.1">
+<file name="/home/gsd/MinimumViableDataspace/launchers/identity-hub/src/test/java/org/eclipse/edc/demo/dcp/JwtSigner.java">
+</file>
+</checkstyle>

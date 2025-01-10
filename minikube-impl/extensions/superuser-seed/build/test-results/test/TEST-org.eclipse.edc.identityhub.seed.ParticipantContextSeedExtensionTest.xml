@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2025-01-08T09:37:56" hostname="cloud122" time="0.189">
+  <properties/>
+  <testcase name="start_withInvalidKeyOverride(ParticipantContextSeedExtension, ServiceExtensionContext)" classname="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" time="0.118"/>
+  <testcase name="start_whenVaultReturnsFailure(ParticipantContextSeedExtension, ServiceExtensionContext)" classname="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" time="0.01"/>
+  <testcase name="start_withApiKeyOverride(ParticipantContextSeedExtension, ServiceExtensionContext)" classname="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" time="0.009"/>
+  <testcase name="start_failsToCreate(ParticipantContextSeedExtension, ServiceExtensionContext)" classname="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" time="0.039"/>
+  <testcase name="start_verifySuperUser(ParticipantContextSeedExtension, ServiceExtensionContext)" classname="org.eclipse.edc.identityhub.seed.ParticipantContextSeedExtensionTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

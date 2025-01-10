@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.eclipse.edc.demo.participants"},{"l":"org.eclipse.edc.demo.participants.resolver"}];updateSearchResults();
