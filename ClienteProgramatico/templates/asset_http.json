@@ -1,0 +1,17 @@
+{
+    "@context": [
+        "https://w3id.org/edc/connector/management/v0.0.1"
+    ],
+    "@id": "http-asset-example",
+    "@type": "Asset",
+    "properties": {
+        "description": "Este é um asset HTTP de exemplo."
+    },
+    "dataAddress": {
+        "@type": "DataAddress",
+        "type": "HttpData",
+        "baseUrl": "https://jsonplaceholder.typicode.com/todos",
+        "proxyPath": "true",
+        "proxyQueryParams": "true"
+    }
+}
