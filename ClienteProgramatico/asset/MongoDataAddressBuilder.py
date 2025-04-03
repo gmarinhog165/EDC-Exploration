@@ -13,6 +13,7 @@ class MongoDataAddressBuilder(DataAddressBuilder):
         self._data_address["connectionString"] = ""
         self._data_address["database"] = ""
         self._data_address["filename"] = ""
+        self._data_address["collection"] = ""
     
     def with_connection_string(self, connection_string: str) -> 'MongoDataAddressBuilder':
         """Define a string de conexão do MongoDB."""
