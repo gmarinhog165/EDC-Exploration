@@ -96,6 +96,11 @@ def create_mongo_asset() -> None:
     asset = builder.with_data_address(mongo_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)
+
+
 def create_azure_asset() -> None:
     """Cria e envia um asset com Azure DataAddress."""
     clear_screen()
@@ -126,3 +131,7 @@ def create_azure_asset() -> None:
     
     asset = builder.with_data_address(azure_builder).build()
     display_json_and_send(asset.to_json(), PATH)
+
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)

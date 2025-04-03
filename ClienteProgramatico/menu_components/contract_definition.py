@@ -11,6 +11,9 @@ def toggle_contract_def_creation(assetID,pols):
         print("No policies available!")
         return
     
+    print("\nCreating new policy!")
+
+
     print("\nAvailable Policy IDs:")
     for idx, policyID in enumerate(pols, 1):
         print(f"{idx}. {policyID}")
