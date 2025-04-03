@@ -55,6 +55,7 @@ def create_http_asset() -> None:
     asset = builder.with_data_address(http_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
+
 def create_mongo_asset() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""
     clear_screen()
