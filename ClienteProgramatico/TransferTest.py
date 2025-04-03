@@ -3,7 +3,7 @@ from transfer.HTTPDataDestinationBuilder import HTTPDataDestinationBuilder
 from transfer.MongoDataDestinationBuilder import MongoDataDestinationBuilder
 from transfer.AmazonS3DataDestinationBuilder import AmazonS3DataDestinationBuilder
 from reqCatalog.RequestCatalogBuilder import RequestCatalogBuilder
-
+from negotiation.NegotiationBuilder import NegotiationBuilder
 def main():
     # Exemplo 1: Transfer com HTTP Data Destination
     http_transfer = TransferBuilder().with_asset_id("trips").with_contract_id("contratoTrips") \
@@ -46,6 +46,11 @@ def main():
     print(mongo_transfer.to_json())
     print("\n" + "-" * 50 + "\n")
 
+    nego = NegotiationBuilder().with_asset_id("asset1").with_policy_id("asddsaasddsa").build()
+
+    print("NEGO")
+    print(nego.to_json())
+    print("\n" + "-" * 50 + "\n")
 
 
 if __name__ == "__main__":

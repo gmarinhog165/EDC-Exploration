@@ -114,6 +114,5 @@ def catalog_menu():
                     if policy_id:
                         selected_asset_policies[asset_id] = policy_id
     
-    input("\nPressione Enter para continuar...")
 
     return selected_asset_policies  # Retorna um mapa de id_asset -> id_politica
