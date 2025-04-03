@@ -1,17 +1,13 @@
-from typing import Any, Dict
-import requests
-from menu_components.utils import clear_screen
+import json
+from menu_components.utils import clear_screen, display_json_and_send
 from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
-import json
-from dotenv import load_dotenv # type: ignore
-import os
 
-load_dotenv()
-HOST = os.getenv("HOST", "http://localhost")
-API_KEY = os.getenv("API_KEY", "password")
+
+PATH = "/api/management/v3/assets"
+
 
 def asset_menu() -> int:
     print("\nEscolha o tipo de asset a criar:")
@@ -57,17 +53,7 @@ def create_http_asset() -> None:
         .with_proxy_query_params(proxy_query)
     
     asset = builder.with_data_address(http_builder).build()
-    
-    # Exibindo o JSON e enviando
-    print("\nJSON gerado:")
-    print(asset.to_json())
-    
-    if input("\nEnviar este asset? (s/n): ").lower() == 's':
-        response = send_request(asset.to_json())
-        print("\nResposta do servidor:")
-        print(json.dumps(response, indent=4))
-    
-    input("\nPressione Enter para continuar...")
+    display_json_and_send(asset.to_json(), PATH)
 
 def create_mongo_asset() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""
@@ -101,17 +87,7 @@ def create_mongo_asset() -> None:
             print("Formato de query inválido. Ignorando este campo.")
     
     asset = builder.with_data_address(mongo_builder).build()
-    
-    # Exibindo o JSON e enviando
-    print("\nJSON gerado:")
-    print(asset.to_json())
-    
-    if input("\nEnviar este asset? (s/n): ").lower() == 's':
-        response = send_request(asset.to_json())
-        print("\nResposta do servidor:")
-        print(json.dumps(response, indent=4))
-    
-    input("\nPressione Enter para continuar...")
+    display_json_and_send(asset.to_json(), PATH)
 
 def create_azure_asset() -> None:
     """Cria e envia um asset com Azure DataAddress."""
@@ -142,30 +118,4 @@ def create_azure_asset() -> None:
         azure_builder.with_sas_token(sas_token)
     
     asset = builder.with_data_address(azure_builder).build()
-    
-    # Exibindo o JSON e enviando
-    print("\nJSON gerado:")
-    print(asset.to_json())
-    
-    if input("\nEnviar este asset? (s/n): ").lower() == 's':
-        response = send_request(asset.to_json())
-        print("\nResposta do servidor:")
-        print(json.dumps(response, indent=4))
-    
-    input("\nPressione Enter para continuar...")
-
-def send_request(asset_json: str) -> Dict[str, Any]:
-    """Envia um request POST com o JSON do asset."""
-    url = f"{HOST}/api/management/v3/assets"
-    headers = {
-        "Content-Type": "application/json",
-        "X-Api-Key": API_KEY
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=asset_json)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao enviar request: {e}")
-        return {}
+    display_json_and_send(asset.to_json(), PATH)
