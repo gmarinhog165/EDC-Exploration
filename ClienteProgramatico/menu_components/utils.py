@@ -26,6 +26,17 @@ def display_json_and_send(asset_json: str, path: str) -> Dict[str, Any]:
     input("\nPressione Enter para continuar...")
     return {}
 
+def get_policies_ids():
+    """Envia um pedido para obter as policies existentes e retorna apenas os IDs"""
+    response = send_request("", "/api/management/v3/policydefinitions/request")
+    
+    
+    policy_ids = [policy["@id"] for policy in response if "@id" in policy]
+    
+    return policy_ids
+
+
+
 def send_request(asset_json: str, path: str) -> Dict[str, Any]:
     """Envia um request POST com o JSON do asset."""
     url = f"{HOST}{path}"
@@ -41,3 +52,7 @@ def send_request(asset_json: str, path: str) -> Dict[str, Any]:
     except requests.exceptions.RequestException as e:
         print(f"Erro ao enviar request: {e}")
         return {}
+    
+
+
+    

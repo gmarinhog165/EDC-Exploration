@@ -1,5 +1,5 @@
 import json
-from menu_components.utils import clear_screen, display_json_and_send
+from menu_components.utils import clear_screen, display_json_and_send,get_policies_ids
 from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
@@ -55,6 +55,7 @@ def create_http_asset() -> None:
     asset = builder.with_data_address(http_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
+    get_policies_ids()
 
 def create_mongo_asset() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""

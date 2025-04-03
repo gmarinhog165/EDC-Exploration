@@ -5,6 +5,7 @@ import json
 from dotenv import load_dotenv # type: ignore
 import os
 from reqCatalog.RequestCatalogBuilder import RequestCatalogBuilder
+from menu_components.utils import send_request
 
 load_dotenv()
 HOST = os.getenv("HOST", "http://localhost")
@@ -14,7 +15,7 @@ def catalog_menu():
     """Consulta o catálogo e exibe opções para o usuário selecionar assets."""
     
     req = RequestCatalogBuilder().build()
-    response = send_request(req.to_json())
+    response = send_request(req.to_json(),"/api/management/v3/catalog/request")
 
     # Verifica se "dcat:dataset" está presente e se é uma lista ou dicionário
     datasets = response.get("dcat:dataset", [])
@@ -72,21 +73,3 @@ def catalog_menu():
             print("\nNenhum asset válido selecionado.")
 
     input("\nPressione Enter para continuar...")
-
-
-
-def send_request(req_json: str) -> Dict[str, Any]:
-    """Envia um request POST com o JSON do asset."""
-    url = f"{HOST}/api/management/v3/catalog/request"
-    headers = {
-        "Content-Type": "application/json",
-        "X-Api-Key": API_KEY
-    }
-    
-    try:
-        response = requests.post(url, headers=headers, data=req_json)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Erro ao enviar request: {e}")
-        return {}
