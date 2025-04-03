@@ -4,7 +4,7 @@ from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
-
+from menu_components.contract_definition import toggle_contract_def_creation
 
 PATH = "/api/management/v3/assets"
 
@@ -55,7 +55,12 @@ def create_http_asset() -> None:
     asset = builder.with_data_address(http_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
-    get_policies_ids()
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)
+
+
+
 
 def create_mongo_asset() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""
