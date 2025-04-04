@@ -1,7 +1,7 @@
 from time import sleep
 from menu_components.catalog import catalog_menu
 from negotiation.NegotiationBuilder import NegotiationBuilder
-from menu_components.utils import send_get_request,send_request
+from menu_components.utils import send_get_request,send_request,transfer_http,transfer_mongo,transfer_s3
 import json
 
 def transfer_asset():
@@ -44,3 +44,23 @@ def transfer_asset():
 
         if not contract_agreement_id:
             print("Contract Agreement ID not found or contract not finalized after waiting.")
+            continue
+
+        print(f"\nAsset ID: {asset_id}")
+        print("Select data destination:")
+        print("1. HTTP")
+        print("2. MongoDB")
+        print("3. S3")
+        
+        choice = input("Enter choice (1/2/3): ").strip()
+        destination_type = None
+
+        if choice == "1":
+            transfer_http(asset_id,contract_agreement_id)
+        elif choice == "2":
+            transfer_mongo(asset_id,contract_agreement_id)
+        elif choice == "3":
+            transfer_s3(asset_id,contract_agreement_id)
+        else:
+            print("Invalid choice. Skipping this asset.")
+            continue

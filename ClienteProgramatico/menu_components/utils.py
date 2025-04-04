@@ -2,12 +2,23 @@ import json
 import os
 from typing import Any, Dict
 from dotenv import load_dotenv # type: ignore
-
+from transfer.TransferBuilder import TransferBuilder 
+from transfer.HTTPDataDestinationBuilder import HTTPDataDestinationBuilder
+from transfer.MongoDataDestinationBuilder import MongoDataDestinationBuilder
+from transfer.AmazonS3DataDestinationBuilder import AmazonS3DataDestinationBuilder
 import requests
 
 load_dotenv()
 HOST = os.getenv("HOST", "http://localhost")
 API_KEY = os.getenv("API_KEY", "password")
+DEST_BASE_URL = os.getenv("DEST_BASE_URL")
+MONGO_CON_STRING= os.getenv("MONGO_CON_STRING")
+MONGO_COLLECTION= os.getenv("MONGO_COLLECTION")
+MONGO_DATABASE= os.getenv("MONGO_DATABASE")
+S3_REGION=os.getenv("S3_REGION")
+S3_BUCKET_NAME=os.getenv("S3_BUCKET_NAME")
+S3_ENDPOINT_OVERRIDE=os.getenv("S3_ENDPOINT_OVERRIDE")
+
 
 def clear_screen():
     """Limpa a tela do terminal."""
@@ -69,3 +80,50 @@ def send_get_request(path: str, params: Dict[str, Any] = None) -> Dict[str, Any]
         print(f"Erro ao enviar GET request: {e}")
         return {}
 
+
+
+def transfer_http(asset_id,contract_id):
+        http_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
+        .with_transfer_type("HttpData-PUSH") \
+        .with_data_destination(
+            HTTPDataDestinationBuilder() \
+            .with_base_url(DEST_BASE_URL).with_type("HttpData")
+        ) \
+         \
+        .build()
+
+        resp = send_request(http_transfer.to_json(),"/api/management/v3/transferprocesses")
+
+        print(resp)
+
+def transfer_mongo(asset_id,contract_id):
+    print("Please insert the desired filename for the destination file:")
+    filename = input().strip()
+
+    mongo_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
+        .with_transfer_type("MongoDB-PUSH") \
+        .with_data_destination(
+            MongoDataDestinationBuilder().with_connection_string(MONGO_CON_STRING)\
+            .with_filename(filename).with_collection(MONGO_COLLECTION).with_database(MONGO_DATABASE)
+        ) \
+         \
+        .build()
+    
+    resp = send_request(mongo_transfer.to_json(),"/api/management/v3/transferprocesses")
+
+    print(resp)
+
+def transfer_s3(asset_id,contract_id):
+    print("Please insert the desired filename for the destination file:")
+    filename = input().strip()
+    
+    s3_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
+    .with_transfer_type("AmazonS3-PUSH") \
+    .with_data_destination(
+        AmazonS3DataDestinationBuilder().with_region(S3_REGION).with_bucket_name(S3_BUCKET_NAME)\
+        .with_object_name(filename).with_endpoint_override(S3_ENDPOINT_OVERRIDE))\
+    .build()
+
+    resp = send_request(s3_transfer.to_json(),"/api/management/v3/transferprocesses")
+
+    print(resp)
