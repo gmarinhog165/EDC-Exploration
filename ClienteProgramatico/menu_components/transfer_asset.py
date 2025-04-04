@@ -1,5 +1,8 @@
+from time import sleep
 from menu_components.catalog import catalog_menu
 from negotiation.NegotiationBuilder import NegotiationBuilder
+from menu_components.utils import send_get_request,send_request
+import json
 
 def transfer_asset():
     map = catalog_menu()
@@ -11,4 +14,33 @@ def transfer_asset():
             .with_policy_id(policy_id)\
             .build()
         
-        print(nego.to_json())
+        response = send_request(nego.to_json(),"/api/management/v3/contractnegotiations")        
+
+
+        negotiation_id = response.get('@id')
+        if not negotiation_id:
+            print("Negotiation ID not found in response.")
+            continue
+        
+
+        url = "/api/management/v3/contractnegotiations/" + negotiation_id
+        
+        ret = send_get_request(url)
+        
+        max_retries = 10
+        retry_interval = 2  # seconds
+        contract_agreement_id = None
+        print("NEGO: " + negotiation_id)
+        for _ in range(max_retries):
+            ret = send_get_request(url)
+            state = ret.get('state')
+            if state == "FINALIZED":
+                contract_agreement_id = ret.get('contractAgreementId')
+                if contract_agreement_id:
+                    print(f"Contract Agreement ID: {contract_agreement_id}")
+                    break
+            print(f"Current state: {state} — waiting to finalize...")
+            sleep(retry_interval)
+
+        if not contract_agreement_id:
+            print("Contract Agreement ID not found or contract not finalized after waiting.")

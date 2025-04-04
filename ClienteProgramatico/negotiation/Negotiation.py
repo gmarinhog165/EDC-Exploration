@@ -35,7 +35,7 @@ class Negotiation:
             "counterPartyId": self.counter_party_id,
             "protocol": self.protocol,
             "policy":{
-                "@type": "offer",
+                "@type": "Offer",
                 "@id": self.policyID,
                 "assigner":self.counter_party_id,
                 "permission":self.permission,

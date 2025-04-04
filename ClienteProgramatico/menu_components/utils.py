@@ -53,6 +53,19 @@ def send_request(asset_json: str, path: str) -> Dict[str, Any]:
         print(f"Erro ao enviar request: {e}")
         return {}
     
+def send_get_request(path: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
+    """Envia um request GET para o caminho especificado com parâmetros opcionais."""
+    url = f"{HOST}{path}"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Api-Key": API_KEY
+    }
 
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao enviar GET request: {e}")
+        return {}
 
-    
