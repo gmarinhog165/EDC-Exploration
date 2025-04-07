@@ -1,10 +1,10 @@
 import json
-from menu_components.utils import clear_screen, display_json_and_send
+from menu_components.utils import clear_screen, display_json_and_send,get_policies_ids
 from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
-
+from menu_components.contract_definition import toggle_contract_def_creation
 
 PATH = "/api/management/v3/assets"
 
@@ -55,6 +55,13 @@ def create_http_asset() -> None:
     asset = builder.with_data_address(http_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)
+
+
+
+
 def create_mongo_asset() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""
     clear_screen()
@@ -89,6 +96,11 @@ def create_mongo_asset() -> None:
     asset = builder.with_data_address(mongo_builder).build()
     display_json_and_send(asset.to_json(), PATH)
 
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)
+
+
 def create_azure_asset() -> None:
     """Cria e envia um asset com Azure DataAddress."""
     clear_screen()
@@ -119,3 +131,7 @@ def create_azure_asset() -> None:
     
     asset = builder.with_data_address(azure_builder).build()
     display_json_and_send(asset.to_json(), PATH)
+
+    pols = get_policies_ids()
+
+    toggle_contract_def_creation(asset.get_asset_id,pols)

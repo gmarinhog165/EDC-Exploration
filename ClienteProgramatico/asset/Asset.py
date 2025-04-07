@@ -9,7 +9,12 @@ class Asset:
     context: List[str] = field(default_factory=lambda: ["https://w3id.org/edc/connector/management/v0.0.1"])
     description: str = "This is a conventional asset."
     data_address: Dict[str, Any] = field(default_factory=dict)
-    
+
+    @property
+    def get_asset_id(self) -> str:
+        """Retorna o ID do asset."""
+        return self.asset_id
+
     def to_json(self) -> str:
         """Converte o asset para formato JSON."""
         asset_dict = {
