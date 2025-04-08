@@ -28,7 +28,10 @@ def consult_assets_menu():
             print("\nErro: Resposta do servidor não contém datasets válidos.")
             input("\nPressione Enter para continuar...")
             return {}
-    
+        
+    if isinstance(datasets, dict):
+        datasets = [datasets]
+
     if not datasets:
         print("\nNenhum asset encontrado no catálogo.")
         input("\nPressione Enter para continuar...")
@@ -38,8 +41,8 @@ def consult_assets_menu():
     
     for index, dataset in enumerate(datasets, start=1):
         
-        asset_id = dataset.get("@id", "Sem ID")
-        description = dataset.get("description", "Sem descrição")
+        asset_id = dataset.get("@id")
+        description = dataset.get("description")
         print(f"{index}. [{asset_id}] - {description}")
 
 
