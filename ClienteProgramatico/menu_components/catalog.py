@@ -16,7 +16,7 @@ def consult_assets_menu():
     """Consulta o catálogo de assets."""
     
     req = RequestCatalogBuilder().build()
-    response = send_request(req.to_json(), "/api/management/v3/catalog/request")
+    response = send_request(req.to_json(), "/api/management/v3/catalog/request","consumer")
     
     # Verifica se "dcat:dataset" está presente e se é uma lista ou dicionário
     datasets = response.get("dcat:dataset", [])
@@ -51,7 +51,7 @@ def catalog_menu():
     """Consulta o catálogo e exibe opções para o utilizador selecionar os assets que quer transferir."""
     
     req = RequestCatalogBuilder().build()
-    response = send_request(req.to_json(), "/api/management/v3/catalog/request")
+    response = send_request(req.to_json(), "/api/management/v3/catalog/request","consumer")
     
     # Verifica se "dcat:dataset" está presente e se é uma lista ou dicionário
     datasets = response.get("dcat:dataset", [])
@@ -64,6 +64,9 @@ def catalog_menu():
             input("\nPressione Enter para continuar...")
             return {}
     
+    if isinstance(datasets, dict):
+            datasets = [datasets]
+
     if not datasets:
         print("\nNenhum asset encontrado no catálogo.")
         input("\nPressione Enter para continuar...")

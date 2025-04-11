@@ -30,4 +30,4 @@ def policy_menu():
      
 def create_policy() -> None:
     template_content = policy_menu()
-    display_json_and_send(template_content, PATH)
+    display_json_and_send(template_content, PATH,"provider")

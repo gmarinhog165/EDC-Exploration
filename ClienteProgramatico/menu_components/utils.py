@@ -9,7 +9,8 @@ from transfer.AmazonS3DataDestinationBuilder import AmazonS3DataDestinationBuild
 import requests
 
 load_dotenv()
-HOST = os.getenv("HOST", "http://localhost")
+HOST_PROVIDER = os.getenv("HOST_PROVIDER", "http://localhost")
+HOST_CONSUMER = os.getenv("HOST_CONSUMER", "http://localhost")
 API_KEY = os.getenv("API_KEY", "password")
 DEST_BASE_URL = os.getenv("DEST_BASE_URL")
 MONGO_CON_STRING= os.getenv("MONGO_CON_STRING")
@@ -24,13 +25,13 @@ def clear_screen():
     """Limpa a tela do terminal."""
     os.system('cls' if os.name == 'nt' else 'clear')
 
-def display_json_and_send(asset_json: str, path: str) -> Dict[str, Any]:
+def display_json_and_send(asset_json: str, path: str,host: str) -> Dict[str, Any]:
     """Exibe o JSON gerado e envia para o servidor se o usuário confirmar."""
     print("\nJSON gerado:")
     print(asset_json)
     
     if input("\nEnviar este asset? (s/n): ").lower() == 's':
-        response = send_request(asset_json, path)
+        response = send_request(asset_json, path,host)
         print("\nResposta do servidor:")
         print(json.dumps(response, indent=4))
     
@@ -39,7 +40,7 @@ def display_json_and_send(asset_json: str, path: str) -> Dict[str, Any]:
 
 def get_policies_ids():
     """Envia um pedido para obter as policies existentes e retorna apenas os IDs"""
-    response = send_request("", "/api/management/v3/policydefinitions/request")
+    response = send_request("", "/api/management/v3/policydefinitions/request","provider")
     
     
     policy_ids = [policy["@id"] for policy in response if "@id" in policy]
@@ -48,9 +49,17 @@ def get_policies_ids():
 
 
 
-def send_request(asset_json: str, path: str) -> Dict[str, Any]:
+def send_request(asset_json: str,path: str,host: str) -> Dict[str, Any]:
     """Envia um request POST com o JSON do asset."""
-    url = f"{HOST}{path}"
+    
+    if host == "provider":
+        url= f"{HOST_PROVIDER}{path}"
+    elif host == "consumer":
+        url= f"{HOST_CONSUMER}{path}"
+    else: 
+        print("Incorrect host.")
+        return {}
+    
     headers = {
         "Content-Type": "application/json",
         "X-Api-Key": API_KEY
@@ -66,7 +75,7 @@ def send_request(asset_json: str, path: str) -> Dict[str, Any]:
     
 def send_get_request(path: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
     """Envia um request GET para o caminho especificado com parâmetros opcionais."""
-    url = f"{HOST}{path}"
+    url = f"{HOST_CONSUMER}{path}"
     headers = {
         "Content-Type": "application/json",
         "X-Api-Key": API_KEY
@@ -92,7 +101,7 @@ def transfer_http(asset_id,contract_id):
          \
         .build()
 
-        resp = send_request(http_transfer.to_json(),"/api/management/v3/transferprocesses")
+        resp = send_request(http_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
 
         print(resp)
 
@@ -109,7 +118,7 @@ def transfer_mongo(asset_id,contract_id):
          \
         .build()
     
-    resp = send_request(mongo_transfer.to_json(),"/api/management/v3/transferprocesses")
+    resp = send_request(mongo_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
 
     print(resp)
 
@@ -124,6 +133,6 @@ def transfer_s3(asset_id,contract_id):
         .with_object_name(filename).with_endpoint_override(S3_ENDPOINT_OVERRIDE))\
     .build()
 
-    resp = send_request(s3_transfer.to_json(),"/api/management/v3/transferprocesses")
+    resp = send_request(s3_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
 
     print(resp)

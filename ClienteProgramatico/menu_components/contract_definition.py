@@ -11,8 +11,7 @@ def toggle_contract_def_creation(assetID,pols):
         print("No policies available!")
         return
     
-    print("\nCreating new policy!")
-
+    print("Add policies.")
 
     print("\nAvailable Policy IDs:")
     for idx, policyID in enumerate(pols, 1):
@@ -58,5 +57,5 @@ def create_contract_definition(accessid,contractid,assetID) -> Dict[str, Any]:
                 .build()
     
     contract_definition = builder.to_json()
-    
-    display_json_and_send(contract_definition, PATH)
+
+    display_json_and_send(contract_definition, PATH,"provider")

@@ -14,8 +14,11 @@ def transfer_asset():
             .with_policy_id(policy_id)\
             .build()
         
-        response = send_request(nego.to_json(),"/api/management/v3/contractnegotiations")        
+        
+        response = send_request(nego.to_json(),"/api/management/v3/contractnegotiations","consumer")        
+        
 
+        
 
         negotiation_id = response.get('@id')
         if not negotiation_id:

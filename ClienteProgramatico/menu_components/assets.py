@@ -53,7 +53,7 @@ def create_http_asset() -> None:
         .with_proxy_query_params(proxy_query)
     
     asset = builder.with_data_address(http_builder).build()
-    display_json_and_send(asset.to_json(), PATH)
+    display_json_and_send(asset.to_json(), PATH,"provider")
 
     pols = get_policies_ids()
 
@@ -94,7 +94,7 @@ def create_mongo_asset() -> None:
             print("Formato de query inválido. Ignorando este campo.")
     
     asset = builder.with_data_address(mongo_builder).build()
-    display_json_and_send(asset.to_json(), PATH)
+    display_json_and_send(asset.to_json(), PATH,"provider")
 
     pols = get_policies_ids()
 
@@ -130,7 +130,7 @@ def create_azure_asset() -> None:
         azure_builder.with_sas_token(sas_token)
     
     asset = builder.with_data_address(azure_builder).build()
-    display_json_and_send(asset.to_json(), PATH)
+    display_json_and_send(asset.to_json(), PATH,"provider")
 
     pols = get_policies_ids()
 
