@@ -1,7 +1,10 @@
+import os
 from pathlib import Path
 
 from menu_components.utils import display_json_and_send
-
+from addAssetToCatalog import check_and_create_policies
+from lib.createPolicy import get_available_templates
+from lib.createPolicy import load_policy_template
 
 PATH = "/api/management/v3/policydefinitions"
 
@@ -29,5 +32,31 @@ def policy_menu():
     return template_content
      
 def create_policy() -> None:
-    template_content = policy_menu()
-    display_json_and_send(template_content, PATH,"provider")
+    provider_qna_url = os.getenv("HOST_PROVIDER_QNA")
+    provider_catalog_url = os.getenv("HOST_PROVIDER_CS")
+
+    templates = get_available_templates("./templates/policies")
+
+    if not templates:
+        print("No policy templates found.")
+        return
+
+    print("Available policy templates:")
+    file_map = {}
+    for idx, template in enumerate(templates):
+        filename = os.path.basename(template)
+        file_map[str(idx + 1)] = template
+        print(f"{idx + 1}. {filename}")
+
+    choice = input("Select a template by number: ").strip()
+    selected_template = file_map.get(choice)
+
+    if not selected_template:
+        print("Invalid selection. Operation canceled.")
+        return
+
+    print(selected_template)
+    policy_ids = check_and_create_policies(provider_catalog_url,[selected_template])
+    policy_ids2 = check_and_create_policies(provider_qna_url,[selected_template])
+    print(policy_ids)
+    print(policy_ids2)

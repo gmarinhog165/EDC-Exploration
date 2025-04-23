@@ -43,34 +43,31 @@ def create_policy_from_template(base_url: str, template_path: str) -> Optional[s
         return None
 
 
-def check_and_create_policies(base_url: str, access_policy_path: str, contract_policy_path: str) -> Tuple[Optional[str], Optional[str]]:
+
+def check_and_create_policies(base_url: str, policy_paths: List[str]) -> List[Optional[str]]:
     """Verifica se as políticas existem e cria-as se necessário."""
     existing_policies = get_policies_ids(base_url)
-    
-    # Carrega os templates para obter os IDs
-    try:
-        access_policy_data = json.loads(load_policy_template(access_policy_path))
-        contract_policy_data = json.loads(load_policy_template(contract_policy_path))
-        
-        access_policy_id = access_policy_data.get("@id", "")
-        contract_policy_id = contract_policy_data.get("@id", "")
-        
-        # Verifica se as políticas já existem
-        if access_policy_id not in existing_policies:
-            access_policy_id = create_policy_from_template(base_url, access_policy_path)
-        else:
-            print(f"Política de acesso {access_policy_id} já existe.")
-        
-        if contract_policy_id not in existing_policies:
-            contract_policy_id = create_policy_from_template(base_url, contract_policy_path)
-        else:
-            print(f"Política de contrato {contract_policy_id} já existe.")
-        
-        return access_policy_id, contract_policy_id
-    
-    except Exception as e:
-        print(f"Erro ao verificar e criar políticas: {e}")
-        return None, None
+    policy_ids = []
+
+    for path in policy_paths:
+        try:
+            policy_data = json.loads(load_policy_template(path))
+            policy_id = policy_data.get("@id", "")
+
+            if policy_id not in existing_policies:
+                print(f"Criando política: {policy_id}")
+                policy_id = create_policy_from_template(base_url, path)
+            else:
+                print(f"Política {policy_id} já existe.")
+
+            policy_ids.append(policy_id)
+
+        except Exception as e:
+            print(f"Erro ao processar a política em {path}: {e}")
+            policy_ids.append(None)
+
+    return policy_ids
+
 
 
 def create_http_asset(base_url: str, asset_id: str, description: str, asset_url: str,proxy_path:bool,proxy_query:bool) -> Optional[str]:

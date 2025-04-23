@@ -46,7 +46,7 @@ def http_asset_menu() -> None:
 
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_qna_url, access_policy_path, contract_policy_path
+        provider_qna_url, [access_policy_path, contract_policy_path]
     )
 
     #criar um http asset
@@ -85,7 +85,7 @@ def http_asset_menu() -> None:
     
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_catalog_url, access_policy_path, contract_policy_path
+        provider_catalog_url, [access_policy_path,contract_policy_path]
     )
     
     if not access_policy_id or not contract_policy_id:
@@ -118,7 +118,7 @@ def mongo_asset_menu() -> None:
     
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_qna_url, access_policy_path, contract_policy_path
+        provider_qna_url, [access_policy_path, contract_policy_path]
     )
 
     #criar um mongo asset
@@ -149,7 +149,7 @@ def mongo_asset_menu() -> None:
     
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_catalog_url, access_policy_path, contract_policy_path
+        provider_catalog_url, [access_policy_path, contract_policy_path]
     )
     
     if not access_policy_id or not contract_policy_id:
@@ -182,7 +182,7 @@ def azure_asset_manu() -> None:
     
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_qna_url, access_policy_path, contract_policy_path
+        provider_qna_url, [access_policy_path, contract_policy_path]
     )
 
     #criar um mongo asset
@@ -213,7 +213,7 @@ def azure_asset_manu() -> None:
     
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
-        provider_catalog_url, access_policy_path, contract_policy_path
+        provider_catalog_url, [access_policy_path, contract_policy_path]
     )
     
     if not access_policy_id or not contract_policy_id:
