@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 
 class ContractDefinitionBuilder:
     def __init__(self, contract_id: str):
@@ -14,7 +14,7 @@ class ContractDefinitionBuilder:
             "assetsSelector": {
                 "@type": "Criterion",
                 "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
-                "operator": "=",
+                "operator": "in",
                 "operandRight": None
             }
         }
@@ -29,6 +29,19 @@ class ContractDefinitionBuilder:
 
     def with_asset_id(self, asset_id: str) -> 'ContractDefinitionBuilder':
         self._contract_def["assetsSelector"]["operandRight"] = asset_id
+        return self
+    
+    def with_asset_ids(self, asset_ids: List[str]) -> 'ContractDefinitionBuilder':
+        """
+        Define múltiplos asset IDs para o contrato.
+        Os IDs serão formatados como uma string com valores entre aspas separados por vírgulas.
+        """
+        if not asset_ids:
+            raise ValueError("Pelo menos um asset_id deve ser fornecido")
+            
+        # Formata cada ID entre aspas duplas e os une com vírgula
+        formatted_ids = ', '.join(f'"{asset_id}"' for asset_id in asset_ids)
+        self._contract_def["assetsSelector"]["operandRight"] = formatted_ids
         return self
 
     def build(self) -> Dict[str, Any]:

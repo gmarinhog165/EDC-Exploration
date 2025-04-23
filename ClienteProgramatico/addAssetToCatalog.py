@@ -7,7 +7,9 @@ from pathlib import Path
 
 from asset.CatalogAssetBuilder import CatalogAssetBuilder
 from asset.HttpDataAddressBuilder import HttpDataAddressBuilder
-from lib.createAsset import create_http_asset
+from lib.createAsset import lib_create_http_asset
+from lib.createAsset import lib_create_mongo_asset
+from lib.createAsset import lib_create_azure_asset
 from lib.createContractDef import create_contract_definition
 from lib.createPolicy import load_policy_template
 from lib.sendRequests import send_post_request
@@ -71,10 +73,10 @@ def check_and_create_policies(base_url: str, access_policy_path: str, contract_p
         return None, None
 
 
-def create_asset(base_url: str, asset_id: str, description: str, asset_url: str) -> Optional[str]:
+def create_http_asset(base_url: str, asset_id: str, description: str, asset_url: str,proxy_path:bool,proxy_query:bool) -> Optional[str]:
     """Cria um asset e retorna seu ID."""
     try:
-        asset = create_http_asset(asset_id, description, asset_url)
+        asset = lib_create_http_asset(asset_id, description, asset_url,proxy_path,proxy_query)
         asset_json = asset.to_json()
 
         print(f"Asset JSON: {asset_json}")
@@ -88,7 +90,42 @@ def create_asset(base_url: str, asset_id: str, description: str, asset_url: str)
     except Exception as e:
         print(f"Erro ao criar asset: {e}")
         return None
+    
+def create_mongo_asset(base_url:str,asset_id:str,description:str,conn_string:str,database:str,collection:str,query:str):
+    """Cria um asset e retorna o seu ID."""
+    try:
+        asset = lib_create_mongo_asset(asset_id,description,conn_string,database,collection,query)
+        asset_json = asset.to_json()
 
+        print(f"Asset JSON: {asset_json}")
+
+        response = send_post_request(base_url,"/api/management/v3/assets",asset_json)
+        if response is None:
+            return None
+        print(f"Asset criado com sucesso: {asset_id}")
+        return asset_id
+
+    except Exception as e:
+        print(f"Erro ao criar asset: {e}")
+        return None
+
+def create_azure_asset(base_url:str,asset_id:str,description:str,account_name:str,container_name:str,blob_name:str,):
+    """Cria um asset e retorna o seu ID."""
+    try:
+        asset= lib_create_azure_asset(asset_id,description,account_name,container_name,blob_name)
+        asset_json = asset.to_json()
+
+        print(f"Asset JSON: {asset_json}")
+
+        response = send_post_request(base_url,"/api/management/v3/assets",asset_json)
+        if response is None:
+            return None
+        print(f"Asset criado com sucesso: {asset_id}")
+        return asset_id
+    
+    except Exception as e:
+        print(f"Erro ao criar asset: {e}")
+        return None
 
 def create_catalog_asset(base_url: str, catalog_asset_id: str, description: str, catalog_url: str) -> Optional[str]:
     """Cria um catalog asset e retorna seu ID."""
@@ -175,7 +212,7 @@ def add_asset_to_catalog(
         return False
     
     # 2. Criar asset regular
-    created_asset_id = create_asset(provider_qna_url, asset_id, asset_description, asset_url)
+    created_asset_id = create_http_asset(provider_qna_url, asset_id, asset_description, asset_url)
     
     if not created_asset_id:
         print("Falha ao criar asset. Operação cancelada.")
