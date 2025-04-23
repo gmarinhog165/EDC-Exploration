@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Any
 import json
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 # Carregar variáveis do arquivo .env
 load_dotenv()
