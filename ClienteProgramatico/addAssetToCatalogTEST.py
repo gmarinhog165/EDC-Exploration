@@ -7,7 +7,7 @@ from pathlib import Path
 
 from asset.CatalogAssetBuilder import CatalogAssetBuilder
 from asset.HttpDataAddressBuilder import HttpDataAddressBuilder
-from lib.createAsset import create_http_asset
+from lib.createAsset import lib_create_http_asset
 from lib.createContractDef import create_contract_definition
 from lib.createPolicy import load_policy_template
 from lib.sendRequests import send_post_request
@@ -74,7 +74,7 @@ def check_and_create_policies(base_url: str, access_policy_path: str, contract_p
 def create_asset(base_url: str, asset_id: str, description: str, asset_url: str) -> Optional[str]:
     """Cria um asset e retorna seu ID."""
     try:
-        asset = create_http_asset(asset_id, description, asset_url)
+        asset = lib_create_http_asset(asset_id, description, asset_url)
         asset_json = asset.to_json()
 
         #print(f"Asset JSON: {asset_json}")

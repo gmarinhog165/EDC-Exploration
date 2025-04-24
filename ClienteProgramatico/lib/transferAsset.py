@@ -4,7 +4,7 @@ from dotenv import load_dotenv # type: ignore
 from time import sleep
 from typing import Dict, Optional, List, Union, Any
 from lib.sendRequests import send_post_request, send_get_request
-from menu_components.catalog import RequestCatalogBuilder
+from reqCatalog.RequestCatalogBuilder import RequestCatalogBuilder
 from negotiation.NegotiationBuilder import NegotiationBuilder
 from transfer.TransferBuilder import TransferBuilder
 from transfer.HTTPDataDestinationBuilder import HTTPDataDestinationBuilder
@@ -39,34 +39,40 @@ def get_catalog() -> Dict[str, str]: # retorna um dicionário com asset_id e pol
         return {}
     
     for catalog_item in response:
-        # Check for nested catalogs
+    # Check for nested catalogs
         if "dcat:catalog" in catalog_item:
-            nested_catalog = catalog_item.get("dcat:catalog", {})
+            nested_catalogs = catalog_item.get("dcat:catalog", [])
             
-            # Process datasets in the nested catalog
-            datasets = nested_catalog.get("dcat:dataset", [])
+            # Garante que nested_catalogs seja uma lista
+            if isinstance(nested_catalogs, dict):
+                nested_catalogs = [nested_catalogs]
             
-            # Handle single dataset (dict) or multiple datasets (list)
-            if isinstance(datasets, dict):
-                datasets = [datasets]
-            elif not isinstance(datasets, list):
-                continue
+            for nested_catalog in nested_catalogs:
+                # Process datasets in the nested catalog
+                datasets = nested_catalog.get("dcat:dataset", [])
                 
-            for dataset in datasets:
-                asset_id = dataset.get("@id", "")
-                
-                # Extract policy_id
-                policy_id = None
-                has_policy = dataset.get("odrl:hasPolicy", {})
-                
-                if isinstance(has_policy, dict):
-                    policy_id = has_policy.get("@id")
-                elif isinstance(has_policy, list) and len(has_policy) > 0:
-                    if isinstance(has_policy[0], dict):
-                        policy_id = has_policy[0].get("@id")
-                
-                if policy_id and asset_id:
-                    all_asset_policies[asset_id] = policy_id
+                # Handle single dataset (dict) or multiple datasets (list)
+                if isinstance(datasets, dict):
+                    datasets = [datasets]
+                elif not isinstance(datasets, list):
+                    continue
+                    
+                for dataset in datasets:
+                    asset_id = dataset.get("@id", "")
+                    
+                    # Extract policy_id
+                    policy_id = None
+                    has_policy = dataset.get("odrl:hasPolicy", {})
+                    
+                    if isinstance(has_policy, dict):
+                        policy_id = has_policy.get("@id")
+                    elif isinstance(has_policy, list) and len(has_policy) > 0:
+                        if isinstance(has_policy[0], dict):
+                            policy_id = has_policy[0].get("@id")
+                    
+                    if policy_id and asset_id:
+                        all_asset_policies[asset_id] = policy_id
+
 
     
     return all_asset_policies
