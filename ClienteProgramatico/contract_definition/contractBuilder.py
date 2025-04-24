@@ -1,5 +1,6 @@
 import json
-from typing import Dict, Any, Optional
+from typing import Any, Dict, List
+
 
 class ContractDefinitionBuilder:
     def __init__(self, contract_id: str):
@@ -14,7 +15,7 @@ class ContractDefinitionBuilder:
             "assetsSelector": {
                 "@type": "Criterion",
                 "operandLeft": "https://w3id.org/edc/v0.0.1/ns/id",
-                "operator": "=",
+                "operator": "in",  # Mudado para 'in' para suportar múltiplos valores
                 "operandRight": None
             }
         }
@@ -28,7 +29,16 @@ class ContractDefinitionBuilder:
         return self
 
     def with_asset_id(self, asset_id: str) -> 'ContractDefinitionBuilder':
-        self._contract_def["assetsSelector"]["operandRight"] = asset_id
+        """Método mantido para compatibilidade com código existente"""
+        return self.with_asset_ids([asset_id])
+
+    def with_asset_ids(self, asset_ids: List[str]) -> 'ContractDefinitionBuilder':
+
+        if not asset_ids:
+            raise ValueError("Pelo menos um asset_id deve ser fornecido")
+            
+        # Passar uma lista diretamente para manter o formato JSON correto
+        self._contract_def["assetsSelector"]["operandRight"] = asset_ids
         return self
 
     def build(self) -> Dict[str, Any]:
@@ -38,7 +48,7 @@ class ContractDefinitionBuilder:
         if self._contract_def["contractPolicyId"] is None:
             raise ValueError("contractPolicyId must be set")
         if self._contract_def["assetsSelector"]["operandRight"] is None:
-            raise ValueError("Asset ID (operandRight) must be set")
+            raise ValueError("Asset IDs (operandRight) must be set")
         
         return self._contract_def
 

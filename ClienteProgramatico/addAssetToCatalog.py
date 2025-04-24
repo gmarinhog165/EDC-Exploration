@@ -31,7 +31,7 @@ def create_policy_from_template(base_url: str, template_path: str) -> Optional[s
         policy_data = json.loads(policy_json)
         policy_id = policy_data.get("@id", "")
         
-        print(f"Policy JSON: {policy_json}")
+        #print(f"Policy JSON: {policy_json}")
         response = send_post_request(base_url, "/api/management/v3/policydefinitions", policy_json)
         print(f"Política criada com sucesso: {policy_id}")
         return policy_id
@@ -77,7 +77,7 @@ def create_asset(base_url: str, asset_id: str, description: str, asset_url: str)
         asset = create_http_asset(asset_id, description, asset_url)
         asset_json = asset.to_json()
 
-        print(f"Asset JSON: {asset_json}")
+        #print(f"Asset JSON: {asset_json}")
         
         response = send_post_request(base_url, "/api/management/v3/assets", asset_json)
         if response is None:
@@ -103,7 +103,7 @@ def create_catalog_asset(base_url: str, catalog_asset_id: str, description: str,
         catalog_asset = builder.build()
         catalog_asset_json = catalog_asset.to_json()
 
-        print(f"Catalog Asset JSON: {catalog_asset_json}")
+        #print(f"Catalog Asset JSON: {catalog_asset_json}")
         
         response = send_post_request(base_url, "/api/management/v3/assets", catalog_asset_json)
         print(f"Catalog Asset criado com sucesso: {catalog_asset_id}")
@@ -119,7 +119,7 @@ def create_contract_def_for_asset(base_url: str, access_policy_id: str, contract
     try:
         contract_def = create_contract_definition(access_policy_id, contract_policy_id, asset_ids)
 
-        print(f"Contract Definition JSON: {contract_def}")
+        #print(f"Contract Definition JSON: {contract_def}")
         
         response = send_post_request(base_url, "/api/management/v3/contractdefinitions", contract_def)
 
@@ -174,14 +174,14 @@ def add_asset_to_catalog(
         print("Falha ao criar políticas. Operação cancelada.")
         return False
     
-    # 2. Criar asset regular
+    # 2. Criar asset regular no provider-qna
     created_asset_id = create_asset(provider_qna_url, asset_id, asset_description, asset_url)
     
     if not created_asset_id:
         print("Falha ao criar asset. Operação cancelada.")
         return False
     
-    # # # 3. Criar definição de contrato para o asset
+    # 3. Criar definição de contrato para o asset no provider-qna
     contract_def = create_contract_def_for_asset(
         provider_qna_url, access_policy_id, contract_policy_id, [created_asset_id]
     )
@@ -190,8 +190,9 @@ def add_asset_to_catalog(
         print("Falha ao criar definição de contrato. Operação cancelada.")
         return False
     
-    # # # 4. Criar catalog asset no provider-catalog-server/cp
-    catalog_url = f"{os.getenv("PROVIDER_QNA_DSP_URL")}{dsp_api_path}"
+    
+    # # 5. Criar catalog asset no provider-catalog-server
+    catalog_url = f"{os.getenv('PROVIDER_QNA_DSP_URL')}{dsp_api_path}"
     catalog_asset_id = create_catalog_asset(
         provider_catalog_url, catalog_asset_id, catalog_description, catalog_url
     )
@@ -200,18 +201,30 @@ def add_asset_to_catalog(
         print("Falha ao criar catalog asset. Operação cancelada.")
         return False
     
-    # # # 5. Verificar e criar políticas
+    # 4. Criar asset no provider-catalog-server com o mesmo ID mas URL diferente
+    normal_asset_id = f"normal-{asset_id}"
+    catalog_server_asset_id = create_asset(
+        provider_catalog_url, normal_asset_id, asset_description, asset_url
+    )
+    
+    if not catalog_server_asset_id:
+        print("Falha ao criar o asset no servidor de catálogo. Operação cancelada.")
+        return False
+    
+    
+    # # 6. Verificar e criar políticas no provider-catalog-server
     access_policy_id, contract_policy_id = check_and_create_policies(
         provider_catalog_url, access_policy_path, contract_policy_path
     )
     
     if not access_policy_id or not contract_policy_id:
-        print("Falha ao criar políticas. Operação cancelada.")
+        print("Falha ao criar políticas no servidor de catálogo. Operação cancelada.")
         return False
     
-    # # # 6. Criar definição de contrato para o catalog asset
+    # 7. Criar definição de contrato para o catalog asset e o asset copiado no provider-catalog-server
+    # Agora usando catalog_server_asset_id (que é o mesmo que asset_id) ao invés do asset_id original
     catalog_contract_def = create_contract_def_for_asset(
-        provider_catalog_url, access_policy_id, access_policy_id, [catalog_asset_id, asset_id]
+        provider_catalog_url, access_policy_id, contract_policy_id, [catalog_asset_id, catalog_server_asset_id]
     )
     
     if not catalog_contract_def:
