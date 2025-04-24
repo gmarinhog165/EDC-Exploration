@@ -1,5 +1,6 @@
 import json
 import os
+from dotenv import load_dotenv # type: ignore
 from time import sleep
 from typing import Dict, Optional, List, Union, Any
 from lib.sendRequests import send_post_request, send_get_request
@@ -11,41 +12,63 @@ from transfer.MongoDataDestinationBuilder import MongoDataDestinationBuilder
 from transfer.AmazonS3DataDestinationBuilder import AmazonS3DataDestinationBuilder
 
 
-def get_catalog() -> Dict[str, str]:
-    
+
+def get_catalog() -> Dict[str, str]: # retorna um dicionário com asset_id e policy_id
+    # Step 1: Cache the catalog using the original request
     req = RequestCatalogBuilder().build()
     response = send_post_request(os.getenv("HOST_CONSUMER"), "/api/management/v3/catalog/request", req.to_json())
+    #print(json.dumps(response, indent=4))
     
-    datasets = response.get("dcat:dataset", [])
+    # Step 2: Query the catalog using the new endpoint
+    query_spec = {
+        "@context": [
+            "https://w3id.org/edc/connector/management/v0.0.1"
+        ],
+        "@type": "QuerySpec"
+    }
     
-    if isinstance(datasets, str):
-        try:
-            import json
-            datasets = json.loads(datasets)
-        except json.JSONDecodeError:
-            return {}
+    catalog_query_url = os.getenv("CONSUMER_CATALOG_QUERY_URL")
+    response = send_post_request(catalog_query_url, "/api/catalog/v1alpha/catalog/query", json.dumps(query_spec))
+
+    #print(json.dumps(response, indent=4))
     
-    if isinstance(datasets, dict):
-        datasets = [datasets]
-        
     all_asset_policies = {}
     
-    for dataset in datasets:
-        asset_id = dataset.get("@id", "")
-        
-        # Extract policy_id
-        policy_id = None
-        has_policy = dataset.get("odrl:hasPolicy", [])
-        
-        if isinstance(has_policy, dict):
-            policy_id = has_policy.get("@id")
-        elif isinstance(has_policy, list) and len(has_policy) > 0:
-            if isinstance(has_policy[0], dict):
-                policy_id = has_policy[0].get("@id")
-        
-        if policy_id and asset_id:
-            all_asset_policies[asset_id] = policy_id
+    # Process the new response format
+    if not isinstance(response, list):
+        return {}
+    
+    for catalog_item in response:
+        # Check for nested catalogs
+        if "dcat:catalog" in catalog_item:
+            nested_catalog = catalog_item.get("dcat:catalog", {})
             
+            # Process datasets in the nested catalog
+            datasets = nested_catalog.get("dcat:dataset", [])
+            
+            # Handle single dataset (dict) or multiple datasets (list)
+            if isinstance(datasets, dict):
+                datasets = [datasets]
+            elif not isinstance(datasets, list):
+                continue
+                
+            for dataset in datasets:
+                asset_id = dataset.get("@id", "")
+                
+                # Extract policy_id
+                policy_id = None
+                has_policy = dataset.get("odrl:hasPolicy", {})
+                
+                if isinstance(has_policy, dict):
+                    policy_id = has_policy.get("@id")
+                elif isinstance(has_policy, list) and len(has_policy) > 0:
+                    if isinstance(has_policy[0], dict):
+                        policy_id = has_policy[0].get("@id")
+                
+                if policy_id and asset_id:
+                    all_asset_policies[asset_id] = policy_id
+
+    
     return all_asset_policies
 
 
@@ -58,45 +81,92 @@ def negotiate_contract(asset_id: str, policy_id: str, max_retries: int = 10,
         .with_policy_id(policy_id)\
         .build()
     
-    # Send negotiation request
-    response = send_post_request(nego.to_json(), "/api/management/v3/contractnegotiations", "consumer")
+    #print(nego.to_json())
     
+    # Send negotiation request
+    host_consumer = os.getenv("HOST_CONSUMER", "")
+    response = send_post_request(
+        host_consumer,
+        "/api/management/v3/contractnegotiations", 
+        nego.to_json()
+    )
+    
+    # Verificar se a resposta contém o ID da negociação
     negotiation_id = response.get('@id')
     if not negotiation_id:
+        print("Falha ao obter ID de negociação.")
         return None
     
-    url = f"/api/management/v3/contractnegotiations/{negotiation_id}"
+    print(f"Iniciada negociação com ID: {negotiation_id}")
     
     # Poll for negotiation completion
     contract_agreement_id = None
-    for _ in range(max_retries):
-        ret = send_get_request(url)
+    for attempt in range(max_retries):
+        print(f"Verificando estado da negociação (tentativa {attempt+1}/{max_retries})...")
+        
+        # Aqui está a correção: use negotiation_id, não contract_agreement_id
+        endpoint = f"/api/management/v3/contractnegotiations/{negotiation_id}"
+        ret = send_get_request(host_consumer, endpoint)
+        
+        # Verificar se o request retornou dados válidos
+        if not ret:
+            print(f"Falha ao obter status da negociação na tentativa {attempt+1}.")
+            sleep(retry_interval)
+            continue
+        
         state = ret.get('state')
+        print(f"Estado atual: {state}")
+        
         if state == "FINALIZED":
             contract_agreement_id = ret.get('contractAgreementId')
             if contract_agreement_id:
+                print(f"Negociação finalizada com sucesso. Contract ID: {contract_agreement_id}")
                 break
+        elif state in ["ERROR", "TERMINATED"]:
+            print(f"Negociação falhou com estado: {state}")
+            return None
+            
         sleep(retry_interval)
-        
+    
+    if not contract_agreement_id:
+        print("Tempo limite excedido para finalização da negociação.")
+    
     return contract_agreement_id
 
 
-def transfer_to_http(asset_id: str, contract_id: str, base_url: str) -> Dict[str, Any]:
-
+def transfer_to_http(asset_id: str, contract_id: str, max_retries: int = 10, 
+                    retry_interval: int = 2) -> bool:
     http_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
-        .with_transfer_type("HttpData-PUSH") \
+        .with_transfer_type("HttpData-PULL") \
         .with_data_destination(
             HTTPDataDestinationBuilder() \
-            .with_base_url(base_url).with_type("HttpData")
+            .with_type("HttpProxy")
         ) \
         .build()
     
-    return send_post_request(http_transfer.to_json(), "/api/management/v3/transferprocesses", "consumer")
+    #print(http_transfer.to_json())
+    
+    response = send_post_request(
+        os.getenv("HOST_CONSUMER", ""),
+        "/api/management/v3/transferprocesses", 
+        http_transfer.to_json()
+    )
+    
+    # Verificar se a resposta contém o ID da transferência
+    transfer_id = response.get('@id')
+    if not transfer_id:
+        print("Falha ao obter ID de transferência.")
+        return False
+    
+    print(f"Iniciada transferência HTTP com ID: {transfer_id}")
+    
+    # Esperar pela conclusão da transferência
+    return wait_for_transfer_completion(transfer_id, max_retries, retry_interval)
 
 
 def transfer_to_mongo(asset_id: str, contract_id: str, filename: str, 
-                     connection_string: str, collection: str, database: str) -> Dict[str, Any]:
-
+                     connection_string: str, collection: str, database: str,
+                     max_retries: int = 10, retry_interval: int = 2) -> bool:
     mongo_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
         .with_transfer_type("MongoDB-PUSH") \
         .with_data_destination(
@@ -105,12 +175,27 @@ def transfer_to_mongo(asset_id: str, contract_id: str, filename: str,
         ) \
         .build()
     
-    return send_post_request(mongo_transfer.to_json(), "/api/management/v3/transferprocesses", "consumer")
+    response = send_post_request(
+        os.getenv("HOST_CONSUMER", ""),
+        "/api/management/v3/transferprocesses", 
+        mongo_transfer.to_json()
+    )
+    
+    # Verificar se a resposta contém o ID da transferência
+    transfer_id = response.get('@id')
+    if not transfer_id:
+        print("Falha ao obter ID de transferência para MongoDB.")
+        return False
+    
+    print(f"Iniciada transferência MongoDB com ID: {transfer_id}")
+    
+    # Esperar pela conclusão da transferência
+    return wait_for_transfer_completion(transfer_id, max_retries, retry_interval)
 
 
 def transfer_to_s3(asset_id: str, contract_id: str, filename: str, 
-                  region: str, bucket_name: str, endpoint_override: str = None) -> Dict[str, Any]:
-
+                  region: str, bucket_name: str, endpoint_override: str = None,
+                  max_retries: int = 10, retry_interval: int = 2) -> bool:
     s3_builder = AmazonS3DataDestinationBuilder()\
         .with_region(region)\
         .with_bucket_name(bucket_name)\
@@ -124,246 +209,85 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
         .with_data_destination(s3_builder) \
         .build()
     
-    return send_post_request(s3_transfer.to_json(), "/api/management/v3/transferprocesses", "consumer")
+    response = send_post_request(
+        os.getenv("HOST_CONSUMER", ""),
+        "/api/management/v3/transferprocesses", 
+        s3_transfer.to_json()
+    )
+    
+    # Verificar se a resposta contém o ID da transferência
+    transfer_id = response.get('@id')
+    if not transfer_id:
+        print("Falha ao obter ID de transferência para S3.")
+        return False
+    
+    print(f"Iniciada transferência S3 com ID: {transfer_id}")
+    
+    # Esperar pela conclusão da transferência
+    return wait_for_transfer_completion(transfer_id, max_retries, retry_interval)
 
+def wait_for_transfer_completion(transfer_id: str, max_retries: int = 10, 
+                                retry_interval: int = 2) -> bool:
 
-def negotiate_and_transfer(asset_id: str, policy_id: str = None, 
-                          destination_type: str = None, **kwargs) -> Dict[str, Any]:
-
-    result = {
-        "success": False,
-        "message": "",
-        "contract_id": None,
-        "transfer_response": None
-    }
+    host_consumer = os.getenv("HOST_CONSUMER", "")
     
-    # If policy_id is not provided, try to find it in the catalog
-    if policy_id is None:
-        catalog = get_catalog()
-        policy_id = catalog.get(asset_id)
-        if not policy_id:
-            result["message"] = f"Policy ID not found for asset {asset_id}."
-            return result
-            
-    # Negotiate contract
-    contract_id = negotiate_contract(asset_id, policy_id)
-    if not contract_id:
-        result["message"] = "Failed to negotiate contract."
-        return result
-    
-    result["contract_id"] = contract_id
-    
-    if not destination_type:
-        result["message"] = "Destination type must be specified."
-        return result
-    
-    # Transfer data based on destination type
-    try:
-        if destination_type.lower() == "http":
-            base_url = kwargs.get("base_url")
-            if not base_url:
-                result["message"] = "base_url is required for HTTP transfers."
-                return result
-                
-            transfer_response = transfer_to_http(asset_id, contract_id, base_url)
-            
-        elif destination_type.lower() == "mongo":
-            required_args = ["filename", "connection_string", "collection", "database"]
-            for arg in required_args:
-                if arg not in kwargs:
-                    result["message"] = f"{arg} is required for MongoDB transfers."
-                    return result
-                    
-            transfer_response = transfer_to_mongo(
-                asset_id, 
-                contract_id, 
-                kwargs["filename"], 
-                kwargs["connection_string"], 
-                kwargs["collection"], 
-                kwargs["database"]
-            )
-            
-        elif destination_type.lower() == "s3":
-            required_args = ["filename", "region", "bucket_name"]
-            for arg in required_args:
-                if arg not in kwargs:
-                    result["message"] = f"{arg} is required for S3 transfers."
-                    return result
-                    
-            transfer_response = transfer_to_s3(
-                asset_id, 
-                contract_id, 
-                kwargs["filename"], 
-                kwargs["region"], 
-                kwargs["bucket_name"],
-                kwargs.get("endpoint_override")  # Optional parameter
-            )
-            
-        else:
-            result["message"] = f"Invalid destination type: {destination_type}"
-            return result
-            
-    except Exception as e:
-        result["message"] = f"Error during transfer: {str(e)}"
-        return result
+    for attempt in range(max_retries):
+        print(f"Verificando estado da transferência (tentativa {attempt+1}/{max_retries})...")
         
-    result["success"] = True
-    result["message"] = "Transfer process initiated successfully."
-    result["transfer_response"] = transfer_response
+        endpoint = f"/api/management/v3/transferprocesses/{transfer_id}"
+        ret = send_get_request(host_consumer, endpoint)
+        
+        if not ret:
+            print(f"Falha ao obter status da transferência na tentativa {attempt+1}.")
+            sleep(retry_interval)
+            continue
+        
+        state = ret.get('state')
+        print(f"Estado atual da transferência: {state}")
+        
+        if state in ["COMPLETED", "STARTED"]:
+            print(f"Transferência concluída com sucesso. Transfer ID: {transfer_id}")
+            return True
+        elif state in ["ERROR", "TERMINATED", "FAILED"]:
+            print(f"Transferência falhou com estado: {state}")
+            return False
+            
+        sleep(retry_interval)
     
-    return result
+    print("Tempo limite excedido para conclusão da transferência.")
+    return False
 
-import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger("http_transfer")
-
-
-def transfer_asset_to_http(
-    asset_id: str, 
-    base_url: str, 
-    policy_id: str = None,
-    max_retries: int = 10,
-    retry_interval: int = 2,
-    verbose: bool = False
-) -> Dict[str, Any]:
+def check_asset_in_catalog(asset_id: str, catalog: Dict[str, str]) -> Optional[str]:
     """
-    Complete workflow for transferring an asset to an HTTP endpoint.
-    
-    This function handles:
-    1. Policy lookup (if not provided)
-    2. Contract negotiation
-    3. HTTP transfer setup
-    4. Error handling and validation at each step
+    Verifica se um asset está no catálogo e retorna seu policy_id se disponível.
     
     Args:
-        asset_id: ID of the asset to transfer
-        base_url: Base URL for the HTTP destination
-        policy_id: ID of the policy (if None, will be looked up in catalog)
-        max_retries: Maximum number of retry attempts for contract negotiation
-        retry_interval: Interval between retries in seconds
-        verbose: Whether to print detailed progress information
+        asset_id: ID do asset a verificar
+        catalog: Dicionário de assets e policies
         
     Returns:
-        Dict containing the result with keys:
-        - success: Boolean indicating if the transfer was successful
-        - message: Status message
-        - contract_id: Contract agreement ID (if negotiation succeeded)
-        - transfer_response: Response from transfer process (if transfer succeeded)
-        - error: Error details (if any errors occurred)
+        policy_id se o asset existe, None caso contrário
     """
-    result = {
-        "success": False,
-        "message": "",
-        "contract_id": None,
-        "transfer_response": None,
-        "error": None
-    }
-    
-    # Validate required inputs
-    if not asset_id:
-        result["message"] = "Asset ID is required"
-        result["error"] = "MissingParameter"
-        return result
-        
-    if not base_url:
-        result["message"] = "Base URL is required for HTTP transfer"
-        result["error"] = "MissingParameter"
-        return result
-    
-    try:
-        # Step 1: Get policy ID if not provided
-        if not policy_id:
-            if verbose:
-                logger.info(f"Policy ID not provided, looking up in catalog for asset {asset_id}")
-            
-            catalog = get_catalog()
-            if not catalog:
-                result["message"] = "Failed to retrieve catalog"
-                result["error"] = "CatalogError"
-                return result
-                
-            policy_id = catalog.get(asset_id)
-            if not policy_id:
-                result["message"] = f"No policy found for asset {asset_id} in the catalog"
-                result["error"] = "PolicyNotFound"
-                return result
-                
-            if verbose:
-                logger.info(f"Found policy {policy_id} for asset {asset_id}")
-        
-        # Step 2: Negotiate contract
-        if verbose:
-            logger.info(f"Starting contract negotiation for asset {asset_id} with policy {policy_id}")
-            
-        contract_id = negotiate_contract(asset_id, policy_id, max_retries, retry_interval, verbose)
-        if not contract_id:
-            result["message"] = "Contract negotiation failed"
-            result["error"] = "NegotiationFailed"
-            return result
-            
-        result["contract_id"] = contract_id
-        
-        if verbose:
-            logger.info(f"Contract negotiated successfully: {contract_id}")
-        
-        # Step 3: Transfer to HTTP
-        if verbose:
-            logger.info(f"Initiating HTTP transfer to {base_url}")
-            
-        transfer_response = transfer_to_http(asset_id, contract_id, base_url)
-        
-        if not transfer_response:
-            result["message"] = "Transfer request failed"
-            result["error"] = "TransferRequestFailed"
-            return result
-            
-        # Check for error indicators in the response
-        if isinstance(transfer_response, dict) and transfer_response.get("error"):
-            result["message"] = f"Transfer error: {transfer_response.get('error')}"
-            result["error"] = "TransferProcessError"
-            result["transfer_response"] = transfer_response
-            return result
-        
-        # Step 4: Return success result
-        result["success"] = True
-        result["message"] = "HTTP transfer process initiated successfully"
-        result["transfer_response"] = transfer_response
-        
-        if verbose:
-            logger.info("Transfer process initiated successfully")
-            
-        return result
-        
-    except Exception as e:
-        # Catch any unexpected errors
-        error_message = str(e)
-        logger.error(f"Unexpected error during transfer: {error_message}")
-        result["message"] = f"An unexpected error occurred: {error_message}"
-        result["error"] = "UnexpectedError"
-        return result
-    
-from dotenv import load_dotenv # type: ignore
+    if asset_id in catalog:
+        return catalog[asset_id]
+    return None
+
 
 def main():
     """
-    Test function for HTTP asset transfer.
+    Automated function for contract negotiation.
     
     This function:
     1. Loads environment variables
-    2. Displays the catalog of available assets
-    3. Prompts for an asset to transfer
-    4. Transfers the asset to an HTTP endpoint
-    5. Displays the result
+    2. Retrieves the catalog of available assets
+    3. Automatically selects the first asset in the catalog
+    4. Negotiates a contract for the selected asset
+    5. Displays the resulting contract ID
     """
     # Load environment variables
     load_dotenv()
     
-    # Get destination URL from environment or prompt user
+    # Get destination URL from environment or use default
     dest_base_url = os.getenv("DEST_BASE_URL")
     if not dest_base_url:
         print("HTTP destination base URL not found in environment.")
@@ -378,58 +302,42 @@ def main():
         return
     
     print("\nAvailable assets:")
-    for index, (asset_id, policy_id) in enumerate(catalog.items(), start=1):
+    asset_list = list(catalog.items())
+    for index, (asset_id, policy_id) in enumerate(asset_list, start=1):
         print(f"{index}. Asset ID: {asset_id} (Policy: {policy_id})")
     
-    # Prompt for asset selection
-    # try:
-    #     selection = int(input("\nEnter the number of the asset to transfer: ").strip())
-    #     if selection < 1 or selection > len(catalog):
-    #         print("Invalid selection.")
-    #         return
-            
-    #     # Get selected asset
-    #     selected_asset_id = list(catalog.keys())[selection - 1]
-    #     selected_policy_id = catalog[selected_asset_id]
-        
-    #     print(f"\nSelected asset: {selected_asset_id}")
-    #     print(f"Policy: {selected_policy_id}")
-    #     print(f"Destination: {dest_base_url}")
-        
-    #     if input("\nProceed with transfer? (y/n): ").lower() != 'y':
-    #         print("Transfer cancelled.")
-    #         return
-            
-    #     # Perform the transfer
-    #     print("\nInitiating transfer process...")
-    #     result = transfer_asset_to_http(
-    #         asset_id=selected_asset_id,
-    #         base_url=dest_base_url,
-    #         policy_id=selected_policy_id,
-    #         verbose=True
-    #     )
-        
-    #     # Display result
-    #     print("\nTransfer Result:")
-    #     print(f"Success: {result['success']}")
-    #     print(f"Message: {result['message']}")
-        
-    #     if result['contract_id']:
-    #         print(f"Contract ID: {result['contract_id']}")
-            
-    #     if result['error']:
-    #         print(f"Error: {result['error']}")
-            
-    #     if result['transfer_response']:
-    #         print("\nTransfer Response:")
-    #         print(json.dumps(result['transfer_response'], indent=2))
-            
-    # except ValueError:
-    #     print("Invalid input. Please enter a number.")
-    # except IndexError:
-    #     print("Invalid selection.")
-    # except Exception as e:
-    #     print(f"An error occurred: {str(e)}")
+    # Automated selection - choose the first asset in the catalog
+    if not asset_list:
+        print("No assets available in the catalog.")
+        return
+    
+    # Select the first asset automatically
+    selected_asset_id, selected_policy_id = asset_list[0]
+    print(f"\nAutomatically selected asset: {selected_asset_id}")
+    print(f"Policy ID: {selected_policy_id}")
+    
+    # Negotiate contract
+    print("\nInitiating contract negotiation...")
+    contract_id = negotiate_contract(selected_asset_id, selected_policy_id)
+    
+    if not contract_id:
+        print("\nA negociação do contrato falhou ou expirou. Abortando transferência.")
+        return
+    
+    print(f"\nNegociação de contrato bem-sucedida!")
+    print(f"Contract ID: {contract_id}")
+
+    # Iniciar transferência HTTP PULL
+    print("\nProsseguindo para transferência de dados...")
+    transfer_result = transfer_to_http(
+        asset_id=selected_asset_id, 
+        contract_id=contract_id
+    )
+    
+    # Verificar resultado da transferência
+    if not transfer_result:
+        print("Falha ao iniciar a transferência de dados.")
+        return    
 
 
 if __name__ == "__main__":

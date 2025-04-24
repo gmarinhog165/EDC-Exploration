@@ -13,7 +13,7 @@ class Transfer:
     type: str = "TransferRequestDto"
     context: List[str] = field(default_factory=lambda: ["https://w3id.org/edc/connector/management/v0.0.1"])
     asset_id: str = ""
-    counter_party_address: str = field(default_factory=lambda: f"{os.getenv('CATALOG_SERVER_DSP_URL', '')}/api/dsp")
+    counter_party_address: str = field(default_factory=lambda: f"{os.getenv('PROVIDER_QNA_DSP_URL', '')}/api/dsp")
     connector_id: str = field(default_factory=lambda: os.getenv("PROVIDER_ID", ""))
     contract_id: str = ""
     data_destination: Dict[str, Any] = field(default_factory=dict)

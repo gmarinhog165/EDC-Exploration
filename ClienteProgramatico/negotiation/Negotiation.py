@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Any
 import json
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv #type: ignore
 
 # Carregar variáveis do arquivo .env
 load_dotenv()
@@ -19,7 +19,7 @@ class Negotiation:
     # Fields with default values
     context: List[str] = field(default_factory=lambda: ["https://w3id.org/edc/connector/management/v0.0.1"])
     type: str = "ContractRequest"
-    counter_party_address: str = field(default_factory=lambda: f"{os.getenv('CATALOG_SERVER_DSP_URL', '')}/api/dsp")
+    counter_party_address: str = field(default_factory=lambda: f"{os.getenv('PROVIDER_QNA_DSP_URL', '')}/api/dsp")
     counter_party_id: str = field(default_factory=lambda: os.getenv("PROVIDER_ID", ""))
     protocol: str = "dataspace-protocol-http"
     left_operand: str = "DataAccess.level"

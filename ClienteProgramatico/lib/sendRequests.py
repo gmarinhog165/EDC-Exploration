@@ -12,7 +12,7 @@ def send_post_request(path, endpoint, body) -> Dict[str, Any]:
     
     headers = {
         "Content-Type": "application/json",
-        "X-Api-Key": API_KEY
+        "X-Api-Key": API_KEY,
     }
 
     url = f"{path}{endpoint}"
