@@ -1,4 +1,5 @@
 import json
+import uuid
 from menu_components.utils import clear_screen, display_json_and_send,get_policies_ids
 from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
@@ -39,6 +40,10 @@ def http_asset_menu() -> None:
     print("=== Criando Asset com HTTP DataAddress ===")
     
     asset_id = input("ID do asset (ou deixe em branco para gerar automaticamente): ")
+    if not asset_id:
+        asset_id = str(uuid.uuid4())
+        print(f"ID gerado automaticamente: {asset_id}")
+
     description = input("Descrição do asset: ")
     base_url = input("URL base: ")
     proxy_path = input("Usar proxy path? (s/n): ").lower() == 's'
@@ -125,6 +130,9 @@ def mongo_asset_menu() -> None:
     print("=== Criando Asset com MongoDB DataAddress ===")
     
     asset_id = input("ID do asset (ou deixe em branco para gerar automaticamente): ")
+    if not asset_id:
+        asset_id = str(uuid.uuid4())
+        print(f"ID gerado automaticamente: {asset_id}")
     description = input("Descrição do asset: ")
     connection_string = input("String de conexão: ")
     database = input("Nome do banco de dados: ")
@@ -214,6 +222,9 @@ def azure_asset_manu() -> None:
     print("=== Criando Asset com Azure Blob Storage DataAddress ===")
     
     asset_id = input("ID do asset (ou deixe em branco para gerar automaticamente): ")
+    if not asset_id:
+        asset_id = str(uuid.uuid4())
+        print(f"ID gerado automaticamente: {asset_id}")
     description = input("Descrição do asset: ")
     account_name = input("Nome da conta de armazenamento: ")
     container_name = input("Nome do container: ")
