@@ -7,6 +7,7 @@ from transfer.HTTPDataDestinationBuilder import HTTPDataDestinationBuilder
 from transfer.MongoDataDestinationBuilder import MongoDataDestinationBuilder
 from transfer.AmazonS3DataDestinationBuilder import AmazonS3DataDestinationBuilder
 import requests
+from lib.transferAsset import transfer_to_http,transfer_to_mongo,transfer_to_s3,negotiate_contract
 
 load_dotenv()
 HOST_PROVIDER = os.getenv("HOST_PROVIDER", "http://localhost")
@@ -91,48 +92,79 @@ def send_get_request(path: str, params: Dict[str, Any] = None) -> Dict[str, Any]
 
 
 
-def transfer_http(asset_id,contract_id):
-        http_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
-        .with_transfer_type("HttpData-PUSH") \
-        .with_data_destination(
-            HTTPDataDestinationBuilder() \
-            .with_base_url(DEST_BASE_URL).with_type("HttpData")
-        ) \
-         \
-        .build()
+def transfer_http(selected_asset_id, selected_policy_id):
 
-        resp = send_request(http_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
+    # Negotiate contract
+    print("\nInitiating contract negotiation...")
+    
+    contract_id = negotiate_contract(selected_asset_id, selected_policy_id)
+    if not contract_id:
+        print(f"\nA negociação do contrato para o asset {selected_asset_id} falhou ou expirou. Pulando.")
+        return
+    
+    print(f"\nNegociação de contrato bem-sucedida para o asset {selected_asset_id}!")
+    print(f"Contract ID: {contract_id}")
+    
+    # Transfer
+    print(f"\nProsseguindo para transferência de dados do asset {selected_asset_id}...")
+    transfer_result = transfer_to_http(
+        asset_id=selected_asset_id,
+        contract_id=contract_id
+    )
+    if not transfer_result:
+        print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
+    else:
+        print(f"Transferência concluída para o asset {selected_asset_id}.\n")
 
-        print(resp)
 
-def transfer_mongo(asset_id,contract_id):
+
+
+def transfer_mongo(selected_asset_id, selected_policy_id):
+    # Negotiate contract
+    print("Please insert the desired filename for the destination file:")
+    filename = input().strip()
+    print("\nInitiating contract negotiation...")
+    
+    contract_id = negotiate_contract(selected_asset_id, selected_policy_id)
+    if not contract_id:
+        print(f"\nA negociação do contrato para o asset {selected_asset_id} falhou ou expirou. Pulando.")
+        return
+    
+    print(f"\nNegociação de contrato bem-sucedida para o asset {selected_asset_id}!")
+    print(f"Contract ID: {contract_id}")
+    
+    # Transfer
+    print(f"\nProsseguindo para transferência de dados do asset {selected_asset_id}...")
+    transfer_result = transfer_to_mongo(asset_id=selected_asset_id,contract_id=contract_id,filename=filename,connection_string=MONGO_CON_STRING,
+    collection=MONGO_COLLECTION,database=MONGO_DATABASE)
+
+    if not transfer_result:
+        print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
+    else:
+        print(f"Transferência concluída para o asset {selected_asset_id}.\n")
+
+
+def transfer_s3(selected_asset_id, selected_policy_id):
+    # Negotiate contract
     print("Please insert the desired filename for the destination file:")
     filename = input().strip()
 
-    mongo_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
-        .with_transfer_type("MongoDB-PUSH") \
-        .with_data_destination(
-            MongoDataDestinationBuilder().with_connection_string(MONGO_CON_STRING)\
-            .with_filename(filename).with_collection(MONGO_COLLECTION).with_database(MONGO_DATABASE)
-        ) \
-         \
-        .build()
+    print("\nInitiating contract negotiation...")
     
-    resp = send_request(mongo_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
-
-    print(resp)
-
-def transfer_s3(asset_id,contract_id):
-    print("Please insert the desired filename for the destination file:")
-    filename = input().strip()
+    contract_id = negotiate_contract(selected_asset_id, selected_policy_id)
+    if not contract_id:
+        print(f"\nA negociação do contrato para o asset {selected_asset_id} falhou ou expirou. Pulando.")
+        return
     
-    s3_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
-    .with_transfer_type("AmazonS3-PUSH") \
-    .with_data_destination(
-        AmazonS3DataDestinationBuilder().with_region(S3_REGION).with_bucket_name(S3_BUCKET_NAME)\
-        .with_object_name(filename).with_endpoint_override(S3_ENDPOINT_OVERRIDE))\
-    .build()
+    print(f"\nNegociação de contrato bem-sucedida para o asset {selected_asset_id}!")
+    print(f"Contract ID: {contract_id}")
+    
+    # Transfer
+    print(f"\nProsseguindo para transferência de dados do asset {selected_asset_id}...")
+    transfer_result = transfer_to_s3(asset_id=selected_asset_id,contract_id=contract_id,filename=filename,region=S3_REGION,
+    bucket_name=S3_BUCKET_NAME,endpoint_override=S3_ENDPOINT_OVERRIDE)
 
-    resp = send_request(s3_transfer.to_json(),"/api/management/v3/transferprocesses","consumer")
-
-    print(resp)
+    if not transfer_result:
+        print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
+    else:
+        print(f"Transferência concluída para o asset {selected_asset_id}.\n")

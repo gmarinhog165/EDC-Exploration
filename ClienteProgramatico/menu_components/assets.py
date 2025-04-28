@@ -5,9 +5,13 @@ from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
 from menu_components.contract_definition import toggle_contract_def_creation
+from lib.addAssetToCatalog import *
 
 PATH = "/api/management/v3/assets"
-
+provider_qna_url = os.getenv("HOST_PROVIDER_QNA")
+access_policy_path = "./templates/policies/membership.json"
+contract_policy_path = "./templates/policies/dataprocessor.json"
+provider_catalog_url = os.getenv("HOST_PROVIDER_CS")
 
 def asset_menu() -> int:
     print("\nEscolha o tipo de asset a criar:")
@@ -18,18 +22,18 @@ def asset_menu() -> int:
     choice = input("\nOpção: ")
 
     if choice == "1":
-        create_http_asset()
+        http_asset_menu()
     elif choice == "2":
-        create_mongo_asset()
+        mongo_asset_menu()
     elif choice == "3":
-        create_azure_asset()
+        azure_asset_manu()
     elif choice == "0":
         print("Saindo...")
 
     return choice
 
 
-def create_http_asset() -> None:
+def http_asset_menu() -> None:
     """Cria e envia um asset com HTTP DataAddress."""
     clear_screen()
     print("=== Criando Asset com HTTP DataAddress ===")
@@ -39,30 +43,83 @@ def create_http_asset() -> None:
     base_url = input("URL base: ")
     proxy_path = input("Usar proxy path? (s/n): ").lower() == 's'
     proxy_query = input("Usar proxy para query params? (s/n): ").lower() == 's'
+
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_qna_url, [access_policy_path, contract_policy_path]
+    )
     
-    # Construindo o asset
-    builder = AssetBuilder()
-    if asset_id:
-        builder.with_id(asset_id)
-    if description:
-        builder.with_description(description)
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
     
-    http_builder = HTTPDataAddressBuilder() \
-        .with_base_url(base_url) \
-        .with_proxy_path(proxy_path) \
-        .with_proxy_query_params(proxy_query)
+    #criar um http asset
+    created_asset_id = create_http_asset(provider_qna_url,asset_id,description,base_url,proxy_path,proxy_query)
     
-    asset = builder.with_data_address(http_builder).build()
-    display_json_and_send(asset.to_json(), PATH,"provider")
+    if not created_asset_id:
+        print("Falha ao criar asset. Operação cancelada.")
+        return False
+    
+    # 3. Criar definição de contrato para o asset no provider-qna
+    contract_def = create_contract_def_for_asset(provider_qna_url, access_policy_id, contract_policy_id, [created_asset_id])
+    
+    if not contract_def:
+        print("Falha ao criar definição de contrato. Operação cancelada.")
+        return False
+    
+    dsp_api_path = "/api/dsp"
+    #criar catalog asset no provider-catalog-server/cp
+    catalog_url = f"{os.getenv("PROVIDER_QNA_DSP_URL")}{dsp_api_path}"
 
-    pols = get_policies_ids()
+    #criar catalog asset no provider-catalog-server
+    catalog_description = "This is a linked asset that points to the catalog of the provider's Q&A department."
+        
+    catalog_asset_id = create_catalog_asset(
+            provider_catalog_url,
+            "linked"+asset_id,
+            "This is a linked asset that points to the catalog of the provider's Q&A department.",
+            catalog_url
+        )
 
-    toggle_contract_def_creation(asset.get_asset_id,pols)
+    
+    if not catalog_asset_id:
+        print("Falha ao criar catalog asset. Operação cancelada.")
+        return False
 
+    #criar asset no provider-catalog-server com o mesmo ID mas URL diferente
+    normal_asset_id = f"normal-{asset_id}"
+    catalog_server_asset_id = create_http_asset(
+        provider_catalog_url, normal_asset_id, description, base_url,proxy_path,proxy_query
+    )
+    
+    if not catalog_server_asset_id:
+        print("Falha ao criar o asset no servidor de catálogo. Operação cancelada.")
+        return False
+    
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_catalog_url, [access_policy_path,contract_policy_path]
+    )
+    
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
+    
+    #criar definição de contrato para o catalog asset e o asset copiado no provider-catalog-server
+    #agora usando catalog_server_asset_id (que é o mesmo que asset_id) ao invés do asset_id original
+    
+    catalog_contract_def = create_contract_def_for_asset(
+        provider_catalog_url, access_policy_id, contract_policy_id, [catalog_asset_id,catalog_server_asset_id]
+    )
+    
+    if not catalog_contract_def:
+        print("Falha ao criar definição de contrato para catalog asset. Operação cancelada.")
+        return False
+    
+    print("Asset adicionado ao catálogo com sucesso!")
+    return True
 
-
-
-def create_mongo_asset() -> None:
+def mongo_asset_menu() -> None:
     """Cria e envia um asset com MongoDB DataAddress."""
     clear_screen()
     print("=== Criando Asset com MongoDB DataAddress ===")
@@ -74,34 +131,84 @@ def create_mongo_asset() -> None:
     collection = input("Nome da coleção: ")
     query = input("Query (em formato JSON, ou deixe vazio): ")
     
-    # Construindo o asset
-    builder = AssetBuilder()
-    if asset_id:
-        builder.with_id(asset_id)
-    if description:
-        builder.with_description(description)
+   
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_qna_url, [access_policy_path, contract_policy_path]
+    )
     
-    mongo_builder = MongoDataAddressBuilder() \
-        .with_connection_string(connection_string) \
-        .with_database(database) \
-        .with_collection(collection)
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
     
-    if query:
-        try:
-            query_dict = json.loads(query)
-            mongo_builder.with_query(query_dict)
-        except json.JSONDecodeError:
-            print("Formato de query inválido. Ignorando este campo.")
+    #criar um mongo asset
+    created_asset_id = create_mongo_asset(provider_qna_url,asset_id,description,connection_string,database,collection,query)
     
-    asset = builder.with_data_address(mongo_builder).build()
-    display_json_and_send(asset.to_json(), PATH,"provider")
+    if not created_asset_id:
+        print("Falha ao criar asset. Operação cancelada.")
+        return False
+    
+    # 3. Criar definição de contrato para o asset no provider-qna
+    contract_def = create_contract_def_for_asset(provider_qna_url, access_policy_id, contract_policy_id, [created_asset_id])
+    
+    if not contract_def:
+        print("Falha ao criar definição de contrato. Operação cancelada.")
+        return False
+    
+    dsp_api_path = "/api/dsp"
+    #criar catalog asset no provider-catalog-server/cp
+    catalog_url = f"{os.getenv("PROVIDER_QNA_DSP_URL")}{dsp_api_path}"
 
-    pols = get_policies_ids()
+    #criar catalog asset no provider-catalog-server
+    catalog_description = "This is a linked asset that points to the catalog of the provider's Q&A department."
+        
+    catalog_asset_id = create_catalog_asset(
+            provider_catalog_url,
+            "linked"+asset_id,
+            "This is a linked asset that points to the catalog of the provider's Q&A department.",
+            catalog_url
+        )
 
-    toggle_contract_def_creation(asset.get_asset_id,pols)
+    
+    if not catalog_asset_id:
+        print("Falha ao criar catalog asset. Operação cancelada.")
+        return False
+
+    #criar asset no provider-catalog-server com o mesmo ID mas URL diferente
+    normal_asset_id = f"normal-{asset_id}"
+    catalog_server_asset_id = create_mongo_asset(
+        provider_catalog_url,normal_asset_id,description,connection_string,database,collection,query
+    )
+    
+    if not catalog_server_asset_id:
+        print("Falha ao criar o asset no servidor de catálogo. Operação cancelada.")
+        return False
+    
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_catalog_url, [access_policy_path,contract_policy_path]
+    )
+    
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
+    
+    #criar definição de contrato para o catalog asset e o asset copiado no provider-catalog-server
+    #agora usando catalog_server_asset_id (que é o mesmo que asset_id) ao invés do asset_id original
+    
+    catalog_contract_def = create_contract_def_for_asset(
+        provider_catalog_url, access_policy_id, contract_policy_id, [catalog_asset_id,catalog_server_asset_id]
+    )
+    
+    if not catalog_contract_def:
+        print("Falha ao criar definição de contrato para catalog asset. Operação cancelada.")
+        return False
+    
+    print("Asset adicionado ao catálogo com sucesso!")
+    return True 
 
 
-def create_azure_asset() -> None:
+def azure_asset_manu() -> None:
     """Cria e envia um asset com Azure DataAddress."""
     clear_screen()
     print("=== Criando Asset com Azure Blob Storage DataAddress ===")
@@ -111,27 +218,78 @@ def create_azure_asset() -> None:
     account_name = input("Nome da conta de armazenamento: ")
     container_name = input("Nome do container: ")
     blob_name = input("Nome do blob (opcional): ")
-    sas_token = input("Token SAS (opcional): ")
     
-    # Construindo o asset
-    builder = AssetBuilder()
-    if asset_id:
-        builder.with_id(asset_id)
-    if description:
-        builder.with_description(description)
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_qna_url, [access_policy_path, contract_policy_path]
+    )
     
-    azure_builder = AzureDataAddressBuilder() \
-        .with_account_name(account_name) \
-        .with_container_name(container_name)
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
     
-    if blob_name:
-        azure_builder.with_blob_name(blob_name)
-    if sas_token:
-        azure_builder.with_sas_token(sas_token)
+    #criar um azure asset
+    created_asset_id = create_azure_asset(provider_qna_url,asset_id,description,account_name,container_name,blob_name)
     
-    asset = builder.with_data_address(azure_builder).build()
-    display_json_and_send(asset.to_json(), PATH,"provider")
+    if not created_asset_id:
+        print("Falha ao criar asset. Operação cancelada.")
+        return False
+    
+    # 3. Criar definição de contrato para o asset no provider-qna
+    contract_def = create_contract_def_for_asset(provider_qna_url, access_policy_id, contract_policy_id, [created_asset_id])
+    
+    if not contract_def:
+        print("Falha ao criar definição de contrato. Operação cancelada.")
+        return False
+    
+    dsp_api_path = "/api/dsp"
+    #criar catalog asset no provider-catalog-server/cp
+    catalog_url = f"{os.getenv("PROVIDER_QNA_DSP_URL")}{dsp_api_path}"
 
-    pols = get_policies_ids()
+    #criar catalog asset no provider-catalog-server
+    catalog_description = "This is a linked asset that points to the catalog of the provider's Q&A department."
+        
+    catalog_asset_id = create_catalog_asset(
+            provider_catalog_url,
+            "linked"+asset_id,
+            "This is a linked asset that points to the catalog of the provider's Q&A department.",
+            catalog_url
+        )
 
-    toggle_contract_def_creation(asset.get_asset_id,pols)
+    
+    if not catalog_asset_id:
+        print("Falha ao criar catalog asset. Operação cancelada.")
+        return False
+
+    #criar asset no provider-catalog-server com o mesmo ID mas URL diferente
+    normal_asset_id = f"normal-{asset_id}"
+    catalog_server_asset_id = create_azure_asset(
+        provider_catalog_url, normal_asset_id,description,account_name,container_name,blob_name
+    )
+    
+    if not catalog_server_asset_id:
+        print("Falha ao criar o asset no servidor de catálogo. Operação cancelada.")
+        return False
+    
+    #verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_catalog_url, [access_policy_path,contract_policy_path]
+    )
+    
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
+    
+    #criar definição de contrato para o catalog asset e o asset copiado no provider-catalog-server
+    #agora usando catalog_server_asset_id (que é o mesmo que asset_id) ao invés do asset_id original
+    
+    catalog_contract_def = create_contract_def_for_asset(
+        provider_catalog_url, access_policy_id, contract_policy_id, [catalog_asset_id,catalog_server_asset_id]
+    )
+    
+    if not catalog_contract_def:
+        print("Falha ao criar definição de contrato para catalog asset. Operação cancelada.")
+        return False
+    
+    print("Asset adicionado ao catálogo com sucesso!")
+    return True

@@ -5,7 +5,7 @@ from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
 
 
-def create_http_asset(asset_id, description, base_url, proxy_path=True, proxy_query=True) -> AssetBuilder:
+def lib_create_http_asset(asset_id, description, base_url, proxy_path=True, proxy_query=True) -> AssetBuilder:
     builder = AssetBuilder()
     if asset_id:
         builder.with_id(asset_id)
@@ -21,7 +21,7 @@ def create_http_asset(asset_id, description, base_url, proxy_path=True, proxy_qu
     return asset
 
 
-def create_mongo_asset(asset_id, description, connection_string, database, 
+def lib_create_mongo_asset(asset_id, description, connection_string, database, 
                       collection, query) -> AssetBuilder:
     
     builder = AssetBuilder()
@@ -46,8 +46,8 @@ def create_mongo_asset(asset_id, description, connection_string, database,
     return asset
 
 
-def create_azure_asset(asset_id, description, account_name, container_name, 
-                      blob_name, sas_token) -> AssetBuilder:
+def lib_create_azure_asset(asset_id, description, account_name, container_name, 
+                      blob_name) -> AssetBuilder:
     
     builder = AssetBuilder()
     if asset_id:
@@ -61,8 +61,7 @@ def create_azure_asset(asset_id, description, account_name, container_name,
     
     if blob_name:
         azure_builder.with_blob_name(blob_name)
-    if sas_token:
-        azure_builder.with_sas_token(sas_token)
+
     
     asset = builder.with_data_address(azure_builder).build()
     return asset
