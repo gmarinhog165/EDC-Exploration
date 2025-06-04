@@ -4,6 +4,7 @@ from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
+from asset.S3DataAddressBuilder import S3DataAddressBuilder
 from menu_components.contract_definition import toggle_contract_def_creation
 from lib.addAssetToCatalog import *
 
@@ -18,6 +19,7 @@ def asset_menu() -> int:
     print("1. Asset com HTTP DataAddress")
     print("2. Asset com MongoDB DataAddress")
     print("3. Asset com Azure Blob Storage DataAddress")
+    print("4. Asset com S3 DataAddress (MinIO)")
     print("0. Sair")
     choice = input("\nOpção: ")
 
@@ -27,6 +29,8 @@ def asset_menu() -> int:
         mongo_asset_menu()
     elif choice == "3":
         azure_asset_manu()
+    elif choice == "4":
+        s3_asset_menu()
     elif choice == "0":
         print("Saindo...")
 
@@ -292,4 +296,93 @@ def azure_asset_manu() -> None:
         return False
     
     print("Asset adicionado ao catálogo com sucesso!")
+    return True
+
+
+def s3_asset_menu() -> None:
+    """Cria e envia um asset com S3 DataAddress."""
+    clear_screen()
+    print("=== Criando Asset com S3 DataAddress ===")
+    
+    asset_id = input("ID do asset (ou deixe em branco para gerar automaticamente): ")
+    description = input("Descrição do asset: ")
+    region = input("Região S3 (ex: eu-west-1): ")
+    bucket_name = input("Nome do bucket: ")
+    object_name = input("Nome do objeto/ficheiro: ")
+    endpoint_override = input("Endpoint override (ex: http://localhost:9000 para MinIO, ou deixe em branco): ")
+
+    # Verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_qna_url, [access_policy_path, contract_policy_path]
+    )
+    
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
+    
+    # Criar um S3 asset
+    created_asset_id = create_s3_asset(
+        provider_qna_url, asset_id, description, region, bucket_name, object_name, endpoint_override
+    )
+    
+    if not created_asset_id:
+        print("Falha ao criar asset. Operação cancelada.")
+        return False
+    
+    # Criar definição de contrato para o asset no provider-qna
+    contract_def = create_contract_def_for_asset(
+        provider_qna_url, access_policy_id, contract_policy_id, [created_asset_id]
+    )
+    
+    if not contract_def:
+        print("Falha ao criar definição de contrato. Operação cancelada.")
+        return False
+    
+    dsp_api_path = "/api/dsp"
+    # Criar catalog asset no provider-catalog-server/cp
+    catalog_url = f"{os.getenv('PROVIDER_QNA_DSP_URL')}{dsp_api_path}"
+
+    # Criar catalog asset no provider-catalog-server
+    catalog_description = "This is a linked asset that points to the catalog of the provider's Q&A department."
+        
+    catalog_asset_id = create_catalog_asset(
+        provider_catalog_url,
+        "linked" + asset_id,
+        catalog_description,
+        catalog_url
+    )
+
+    if not catalog_asset_id:
+        print("Falha ao criar catalog asset. Operação cancelada.")
+        return False
+
+    # Criar asset no provider-catalog-server com o mesmo ID mas URL diferente
+    normal_asset_id = f"normal-{asset_id}"
+    catalog_server_asset_id = create_s3_asset(
+        provider_catalog_url, normal_asset_id, description, region, bucket_name, object_name, endpoint_override
+    )
+    
+    if not catalog_server_asset_id:
+        print("Falha ao criar o asset no servidor de catálogo. Operação cancelada.")
+        return False
+    
+    # Verificar e criar políticas
+    access_policy_id, contract_policy_id = check_and_create_policies(
+        provider_catalog_url, [access_policy_path, contract_policy_path]
+    )
+    
+    if not access_policy_id or not contract_policy_id:
+        print("Falha ao criar políticas. Operação cancelada.")
+        return False
+    
+    # Criar definição de contrato para o catalog asset e o asset copiado no provider-catalog-server
+    catalog_contract_def = create_contract_def_for_asset(
+        provider_catalog_url, access_policy_id, contract_policy_id, [catalog_asset_id, catalog_server_asset_id]
+    )
+    
+    if not catalog_contract_def:
+        print("Falha ao criar definição de contrato para catalog asset. Operação cancelada.")
+        return False
+    
+    print("Asset S3 adicionado ao catálogo com sucesso!")
     return True

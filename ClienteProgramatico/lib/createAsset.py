@@ -3,6 +3,7 @@ from asset.AssetBuilder import AssetBuilder
 from asset.HTTPDataAddressBuilder import HTTPDataAddressBuilder
 from asset.MongoDataAddressBuilder import MongoDataAddressBuilder
 from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
+from asset.S3DataAddressBuilder import S3DataAddressBuilder
 
 
 def lib_create_http_asset(asset_id, description, base_url, proxy_path=True, proxy_query=True) -> AssetBuilder:
@@ -64,4 +65,25 @@ def lib_create_azure_asset(asset_id, description, account_name, container_name,
 
     
     asset = builder.with_data_address(azure_builder).build()
+    return asset
+
+
+def lib_create_s3_asset(asset_id: str, description: str, region: str, bucket_name: str, object_name: str, endpoint_override: str = "") -> AssetBuilder:
+    """Cria um AssetBuilder com S3 DataAddress."""
+    builder = AssetBuilder()
+    if asset_id:
+        builder.with_id(asset_id)
+    if description:
+        builder.with_description(description)
+    
+    s3_builder = S3DataAddressBuilder() \
+        .with_region(region) \
+        .with_bucket_name(bucket_name) \
+        .with_object_name(object_name)
+    
+    # Adicionar endpoint override apenas se fornecido
+    if endpoint_override:
+        s3_builder.with_endpoint_override(endpoint_override)
+    
+    asset = builder.with_data_address(s3_builder).build()
     return asset

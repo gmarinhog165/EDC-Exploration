@@ -10,6 +10,7 @@ from asset.HttpDataAddressBuilder import HttpDataAddressBuilder
 from lib.createAsset import lib_create_http_asset
 from lib.createAsset import lib_create_mongo_asset
 from lib.createAsset import lib_create_azure_asset
+from lib.createAsset import lib_create_s3_asset
 from lib.createContractDef import create_contract_definition
 from lib.createPolicy import load_policy_template
 from lib.sendRequests import send_post_request
@@ -120,6 +121,24 @@ def create_azure_asset(base_url:str,asset_id:str,description:str,account_name:st
     
     except Exception as e:
         print(f"Erro ao criar asset: {e}")
+        return None
+    
+def create_s3_asset(base_url: str, asset_id: str, description: str, region: str, bucket_name: str, object_name: str, endpoint_override: str = "") -> Optional[str]:
+    """Cria um asset S3 e retorna seu ID."""
+    try:
+        asset = lib_create_s3_asset(asset_id, description, region, bucket_name, object_name, endpoint_override)
+        asset_json = asset.to_json()
+
+        print(f"Asset S3 JSON: {asset_json}")
+        
+        response = send_post_request(base_url, "/api/management/v3/assets", asset_json)
+        if response is None:
+            return None
+        print(f"Asset S3 criado com sucesso: {asset_id}")
+        return asset_id
+    
+    except Exception as e:
+        print(f"Erro ao criar asset S3: {e}")
         return None
 
 
