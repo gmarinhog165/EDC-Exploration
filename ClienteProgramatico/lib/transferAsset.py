@@ -222,6 +222,10 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
     )
     
     # Verificar se a resposta contém o ID da transferência
+    if response is None:
+        print("S3 transfer failed: response is None")
+        return False
+
     transfer_id = response.get('@id')
     if not transfer_id:
         print("Falha ao obter ID de transferência para S3.")

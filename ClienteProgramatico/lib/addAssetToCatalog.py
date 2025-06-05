@@ -53,19 +53,19 @@ def check_and_create_policies(base_url: str, policy_paths: List[str]) -> List[Op
         try:
             policy_data = json.loads(load_policy_template(path))
             policy_id = policy_data.get("@id", "")
-
+            
             if policy_id not in existing_policies:
                 print(f"Criando política: {policy_id}")
                 policy_id = create_policy_from_template(base_url, path)
             else:
                 print(f"Política {policy_id} já existe.")
 
+
             policy_ids.append(policy_id)
 
         except Exception as e:
             print(f"Erro ao processar a política em {path}: {e}")
             policy_ids.append(None)
-
     return policy_ids
 
 
