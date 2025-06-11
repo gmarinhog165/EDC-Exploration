@@ -150,6 +150,7 @@ def transfer_s3(selected_asset_id, selected_policy_id):
     filename = input().strip()
 
     print("\nInitiating contract negotiation...")
+    print("\nPolicy id = " + selected_policy_id)
     
     contract_id = negotiate_contract(selected_asset_id, selected_policy_id)
     if not contract_id:
