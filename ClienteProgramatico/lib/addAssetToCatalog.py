@@ -69,10 +69,10 @@ def check_and_create_policies(base_url: str, policy_paths: List[str]) -> List[Op
     return policy_ids
 
 
-def create_http_asset(base_url: str, asset_id: str, description: str, asset_url: str,proxy_path:bool,proxy_query:bool) -> Optional[str]:
+def create_http_asset(base_url: str, asset_id: str, description: str, asset_url: str, token: str, method:str, body:str, proxy_path:bool,proxy_query:bool) -> Optional[str]:
     """Cria um asset e retorna seu ID."""
     try:
-        asset = lib_create_http_asset(asset_id, description, asset_url,proxy_path,proxy_query)
+        asset = lib_create_http_asset(asset_id, description, asset_url,token, method, body, proxy_path,proxy_query)
         asset_json = asset.to_json()
 
         print(f"Asset JSON: {asset_json}")

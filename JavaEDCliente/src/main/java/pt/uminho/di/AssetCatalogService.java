@@ -43,7 +43,20 @@ public class AssetCatalogService implements AssetCatalogServiceInterface {
         }
     }
 
-    // Rest of your methods remain the same...
+    /**
+     * Shutdown the gateway connection
+     */
+    public void shutdown() {
+        try {
+            if (gateway != null) {
+                gateway.shutdown();
+                LOGGER.info("Python gateway connection closed");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Error shutting down gateway", e);
+        }
+    }
+
     @Override
     public String get_catalog() {
         try {

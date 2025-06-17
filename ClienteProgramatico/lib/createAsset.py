@@ -6,7 +6,7 @@ from asset.AzureDataAddressBuilder import AzureDataAddressBuilder
 from asset.S3DataAddressBuilder import S3DataAddressBuilder
 
 
-def lib_create_http_asset(asset_id, description, base_url, proxy_path=True, proxy_query=True) -> AssetBuilder:
+def lib_create_http_asset(asset_id, description, base_url, token, method, body, proxy_path=True, proxy_query=True) -> AssetBuilder:
     builder = AssetBuilder()
     if asset_id:
         builder.with_id(asset_id)
@@ -16,7 +16,12 @@ def lib_create_http_asset(asset_id, description, base_url, proxy_path=True, prox
     http_builder = HTTPDataAddressBuilder() \
         .with_base_url(base_url) \
         .with_proxy_path(proxy_path) \
-        .with_proxy_query_params(proxy_query)
+        .with_proxy_query_params(proxy_query) \
+        .with_bearer_token(token) \
+        .with_method(method) \
+        .with_content_type("application/json") \
+        .with_json_body(body)\
+        .with_proxy_body(True)
     
     asset = builder.with_data_address(http_builder).build()
     return asset

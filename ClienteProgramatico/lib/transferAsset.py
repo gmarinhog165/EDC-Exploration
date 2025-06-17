@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 from dotenv import load_dotenv # type: ignore
@@ -205,7 +206,7 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
     s3_builder = AmazonS3DataDestinationBuilder()\
         .with_region(region)\
         .with_bucket_name(bucket_name)\
-        .with_object_name(filename)
+        .with_object_name(datetime.now().strftime('%Y-%m-%d_%H-%M-%S.%f') + f"-{filename}")\
     
     if endpoint_override:
         s3_builder.with_endpoint_override(endpoint_override)
@@ -214,6 +215,8 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
         .with_transfer_type("AmazonS3-PUSH") \
         .with_data_destination(s3_builder) \
         .build()
+    
+    print(s3_transfer.to_json())
     
     response = send_post_request(
         os.getenv("HOST_CONSUMER", ""),
@@ -255,7 +258,7 @@ def wait_for_transfer_completion(transfer_id: str, max_retries: int = 10,
         state = ret.get('state')
         print(f"Estado atual da transferência: {state}")
         
-        if state in ["COMPLETED", "STARTED"]:
+        if state in ["COMPLETED", "FINALIZED", "STARTED"]:
             print(f"Transferência concluída com sucesso. Transfer ID: {transfer_id}")
             return True
         elif state in ["ERROR", "TERMINATED", "FAILED"]:
