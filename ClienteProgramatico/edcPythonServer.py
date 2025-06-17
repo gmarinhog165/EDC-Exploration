@@ -12,6 +12,7 @@ from lib.createAsset import lib_create_http_asset, lib_create_mongo_asset, lib_c
 from lib.createContractDef import create_contract_definition
 from lib.sendRequests import send_post_request, send_get_request
 from py4j.java_collections import ListConverter
+from py4j.java_collections import JavaList
 from lib.transferAsset import (
     get_catalog, 
     negotiate_contract, 
@@ -60,13 +61,21 @@ class AssetCatalogService:
         return json.dumps(result) if result else None
 
 
-    def checkAndCreatePolicies(self, base_url, policy_paths):
-        policy_paths_list = list(policy_paths)
-        result = check_and_create_policies(base_url, policy_paths_list)
 
-        # Convert native Python list to Java list using the gateway
-        java_list = ListConverter().convert(result, self.gateway._gateway_client)
-        return java_list
+    def checkAndCreatePolicies(self, base_url, policy_paths):
+        try:
+            if isinstance(policy_paths, JavaList):
+                policy_paths_list = [str(path) for path in policy_paths]
+            else:
+                raise TypeError(f"Expected JavaList, got {type(policy_paths)}")
+            
+            result = check_and_create_policies(base_url, policy_paths_list)
+            return ListConverter().convert(result, self.gateway._gateway_client)
+        
+        except Exception as e:
+            print(f"[Python] Error in checkAndCreatePolicies: {e}")
+            raise
+        
 
 
     def negotiateContract(self, asset_id, policy_id, max_retries=10, retry_interval=2):

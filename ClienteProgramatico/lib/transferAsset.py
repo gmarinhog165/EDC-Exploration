@@ -223,7 +223,7 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
         "/api/management/v3/transferprocesses", 
         s3_transfer.to_json()
     )
-    
+
     # Verificar se a resposta contém o ID da transferência
     if response is None:
         print("S3 transfer failed: response is None")
