@@ -1,11 +1,15 @@
 package pt.uminho.di;
 
+import io.github.cdimascio.dotenv.Dotenv;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
 public class Main {
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String HOST_PROVIDER_QNA = dotenv.get("HOST_PROVIDER_QNA");
     public static void main(String[] args) {
         final int THREAD_COUNT = 4; // Change to 2, 4, 6, 8...
 
@@ -18,7 +22,7 @@ public class Main {
             AssetCatalogService service = new AssetCatalogService(host, 25333, 25334);
             TransferS3 s3 = new TransferS3();
 
-            String baseUrl = "http://192.168.112.122/provider-qna/cp";
+            String baseUrl = HOST_PROVIDER_QNA;
             String sourceBucket = "datasource";
             String destBucket = "dest-bucket";
 

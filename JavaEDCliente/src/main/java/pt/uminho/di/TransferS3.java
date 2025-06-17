@@ -9,19 +9,22 @@ import java.lang.reflect.Type;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class TransferS3 {
+    private static final Dotenv dotenv = Dotenv.load();
+    private static final String ENDPOINT_OVERRIDE = dotenv.get("ENDPOINT_OVERRIDE");
 
     // Step 1: Create asset and contract definition
     public String createAsset(AssetCatalogService service, String baseUrl,String bucketname,String objectName) throws Exception {
-        String assetId = "test-asset-" + System.currentTimeMillis();
+        String assetId = "test-asset-" + System.currentTimeMillis() + "-" + objectName.replace(".", "-");
         String description = "Test Asset created via Java";
         String region = "eu-west-1";
-        String endpointOverride = "http://localhost:9000";
+
 
         System.out.println("\nCreating S3 Asset...");
         String createdAssetId = service.createS3Asset(
-                baseUrl, assetId, description, region, bucketname, objectName, endpointOverride);
+                baseUrl, assetId, description, region, bucketname, objectName, ENDPOINT_OVERRIDE);
         System.out.println("Created asset ID: " + createdAssetId);
 
         System.out.println("\nCreating policies...");
@@ -67,7 +70,7 @@ public class TransferS3 {
     // Step 3: Transfer asset
     public boolean transferAsset(AssetCatalogService service, String assetId, String agreementId,String destFileName,String destBucketName) throws Exception {
         System.out.println("\nTransferring asset...");
-        return service.transferToS3(assetId, agreementId, destFileName, "eu-west-1", destBucketName, "http://localhost:9000", 10, 2);
+        return service.transferToS3(assetId, agreementId, destFileName, "eu-west-1", destBucketName, ENDPOINT_OVERRIDE, 10, 2);
     }
 
     // Pretty JSON for printing
