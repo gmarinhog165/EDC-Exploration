@@ -142,7 +142,7 @@ def negotiate_contract(asset_id: str, policy_id: str, max_retries: int = 10,
 
 
 def transfer_to_http(asset_id: str, contract_id: str, max_retries: int = 10, 
-                    retry_interval: int = 2) -> bool:
+                    retry_interval: int = 2):
     http_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
         .with_transfer_type("HttpData-PULL") \
         .with_data_destination(
@@ -173,7 +173,7 @@ def transfer_to_http(asset_id: str, contract_id: str, max_retries: int = 10,
 
 def transfer_to_mongo(asset_id: str, contract_id: str, filename: str, 
                      connection_string: str, collection: str, database: str,
-                     max_retries: int = 10, retry_interval: int = 2) -> bool:
+                     max_retries: int = 10, retry_interval: int = 2):
     mongo_transfer = TransferBuilder().with_asset_id(asset_id).with_contract_id(contract_id) \
         .with_transfer_type("MongoDB-PUSH") \
         .with_data_destination(
@@ -202,7 +202,7 @@ def transfer_to_mongo(asset_id: str, contract_id: str, filename: str,
 
 def transfer_to_s3(asset_id: str, contract_id: str, filename: str, 
                   region: str, bucket_name: str, endpoint_override: str = None,
-                  max_retries: int = 10, retry_interval: int = 2) -> bool:
+                  max_retries: int = 10, retry_interval: int = 2):
     s3_builder = AmazonS3DataDestinationBuilder()\
         .with_region(region)\
         .with_bucket_name(bucket_name)\
@@ -227,20 +227,19 @@ def transfer_to_s3(asset_id: str, contract_id: str, filename: str,
     # Verificar se a resposta contém o ID da transferência
     if response is None:
         print("S3 transfer failed: response is None")
-        return False
+        return None
 
     transfer_id = response.get('@id')
     if not transfer_id:
         print("Falha ao obter ID de transferência para S3.")
-        return False
+        return None
     
     print(f"Iniciada transferência S3 com ID: {transfer_id}")
     
     # Esperar pela conclusão da transferência
     return wait_for_transfer_completion(transfer_id, max_retries, retry_interval)
 
-def wait_for_transfer_completion(transfer_id: str, max_retries: int = 10, 
-                                retry_interval: int = 2) -> bool:
+def wait_for_transfer_completion(transfer_id: str, max_retries: int = 10, retry_interval: int = 2):
 
     host_consumer = os.getenv("HOST_CONSUMER", "")
     
@@ -260,15 +259,16 @@ def wait_for_transfer_completion(transfer_id: str, max_retries: int = 10,
         
         if state in ["COMPLETED", "FINALIZED", "STARTED"]:
             print(f"Transferência concluída com sucesso. Transfer ID: {transfer_id}")
-            return True
+            
+            return ret
         elif state in ["ERROR", "TERMINATED", "FAILED"]:
             print(f"Transferência falhou com estado: {state}")
-            return False
+            return None
             
         sleep(retry_interval)
     
     print("Tempo limite excedido para conclusão da transferência.")
-    return False
+    return None
 
 def check_asset_in_catalog(asset_id: str, catalog: Dict[str, str]) -> Optional[str]:
     """

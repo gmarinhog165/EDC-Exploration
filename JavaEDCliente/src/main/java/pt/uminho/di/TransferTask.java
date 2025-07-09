@@ -30,7 +30,7 @@ public class TransferTask {
         this.contractAgreementId = s3.negotiateContract(service, assetId);
     }
 
-    public boolean transfer(TransferS3 s3, AssetCatalogService service, String destBucket) throws Exception {
+    public String transfer(TransferS3 s3, AssetCatalogService service, String destBucket) throws Exception {
         if (assetId == null || contractAgreementId == null)
             throw new IllegalStateException("Asset and contract must be prepared before transfer.");
         return s3.transferAsset(service, assetId, contractAgreementId, fileName, destBucket);

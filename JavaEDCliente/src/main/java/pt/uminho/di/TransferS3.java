@@ -10,7 +10,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.github.cdimascio.dotenv.Dotenv;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 public class TransferS3 {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String ENDPOINT_OVERRIDE = dotenv.get("ENDPOINT_OVERRIDE");
@@ -37,15 +38,14 @@ public class TransferS3 {
         System.out.println("Created policy IDs: " + policyIds);
 
         if (policyIds.size() >= 2) {
-            System.out.println("\nCreating contract definition...");
+            //System.out.println("\nCreating contract definition...");
             String contractDefJson = service.createContractDefForAsset(
                     baseUrl, policyIds.get(0), policyIds.get(1), Arrays.asList(createdAssetId));
-            System.out.println("Created contract definition:\n" + prettifyJson(contractDefJson));
+            //System.out.println("Created contract definition:\n" + prettifyJson(contractDefJson));
         } else {
             throw new Exception("Missing policies. Cannot create contract definition.");
         }
 
-        //Thread.sleep(5000); // Optional wait for catalog to update
         return createdAssetId;
     }
 
@@ -68,10 +68,18 @@ public class TransferS3 {
     }
 
     // Step 3: Transfer asset
-    public boolean transferAsset(AssetCatalogService service, String assetId, String agreementId,String destFileName,String destBucketName) throws Exception {
+    public String transferAsset(AssetCatalogService service, String assetId, String agreementId,String destFileName,String destBucketName) throws Exception {
         System.out.println("\nTransferring asset...");
-        return service.transferToS3(assetId, agreementId, destFileName, "eu-west-1", destBucketName, ENDPOINT_OVERRIDE, 10, 2);
+        Object response = service.transferToS3(assetId, agreementId, destFileName, "eu-west-1", destBucketName, ENDPOINT_OVERRIDE, 10, 2);
+
+        if (response == null) {
+            return null;
+        }
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(response.toString());
+        return root.path("correlationId").asText(null);
     }
+
 
     // Pretty JSON for printing
     private static String prettifyJson(String json) {

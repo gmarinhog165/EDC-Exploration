@@ -134,7 +134,7 @@ public interface AssetCatalogServiceInterface {
      * @param retryInterval Interval between retries
      * @return True if transfer was successful
      */
-    boolean transferToS3(String assetId, String contractId, String filename,
+    String transferToS3(String assetId, String contractId, String filename,
                          String region, String bucketName, String endpointOverride,
                          int maxRetries, int retryInterval);
 
