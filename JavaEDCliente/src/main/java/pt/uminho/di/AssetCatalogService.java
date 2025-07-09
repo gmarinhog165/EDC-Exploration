@@ -180,7 +180,7 @@ public class AssetCatalogService implements AssetCatalogServiceInterface {
     }
 
     @Override
-    public boolean transferToS3(String assetId, String contractId, String filename,
+    public String transferToS3(String assetId, String contractId, String filename,
                                 String region, String bucketName, String endpointOverride,
                                 int maxRetries, int retryInterval) {
         try {

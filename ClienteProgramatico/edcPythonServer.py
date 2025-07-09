@@ -91,8 +91,10 @@ class AssetCatalogService:
 
     def transferToS3(self, asset_id, contract_id, filename, region, bucket_name,
                      endpoint_override=None, max_retries=10, retry_interval=2):
-        return transfer_to_s3(asset_id, contract_id, filename, region, bucket_name,
-                              endpoint_override, max_retries, retry_interval)
+        result = transfer_to_s3(asset_id, contract_id, filename, region, bucket_name,
+                                endpoint_override, max_retries, retry_interval)
+        return json.dumps(result) if result is not None else None  # <- return JSON string
+    
 
     def checkAssetInCatalog(self, asset_id, catalog_str):
         catalog = json.loads(catalog_str)

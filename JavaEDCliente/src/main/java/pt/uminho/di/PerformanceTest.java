@@ -184,11 +184,11 @@ public class PerformanceTest {
                     transferFutures.add(executor.submit(() -> {
                         long startTime = System.currentTimeMillis();
                         try {
-                            boolean success = task.transfer(s3, service, destBucket);
+                            String transferResponse = task.transfer(s3, service, destBucket);
                             long endTime = System.currentTimeMillis();
                             task.getMetrics().setTransferTime(endTime - startTime);
 
-                            if (success) {
+                            if (transferResponse != null) {
                                 successCount.incrementAndGet();
                                 System.out.print("✓");
                             } else {

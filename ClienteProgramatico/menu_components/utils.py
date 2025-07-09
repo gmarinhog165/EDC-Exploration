@@ -111,7 +111,7 @@ def transfer_http(selected_asset_id, selected_policy_id):
         asset_id=selected_asset_id,
         contract_id=contract_id
     )
-    if not transfer_result:
+    if transfer_result==None:
         print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
     else:
         print(f"Transferência concluída para o asset {selected_asset_id}.\n")
@@ -138,7 +138,7 @@ def transfer_mongo(selected_asset_id, selected_policy_id):
     transfer_result = transfer_to_mongo(asset_id=selected_asset_id,contract_id=contract_id,filename=filename,connection_string=MONGO_CON_STRING,
     collection=MONGO_COLLECTION,database=MONGO_DATABASE)
 
-    if not transfer_result:
+    if transfer_result == None:
         print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
     else:
         print(f"Transferência concluída para o asset {selected_asset_id}.\n")
@@ -165,7 +165,8 @@ def transfer_s3(selected_asset_id, selected_policy_id):
     transfer_result = transfer_to_s3(asset_id=selected_asset_id,contract_id=contract_id,filename=filename,region=S3_REGION,
     bucket_name=S3_BUCKET_NAME,endpoint_override=S3_ENDPOINT_OVERRIDE)
 
-    if not transfer_result:
+    if transfer_result == None:
         print(f"Falha ao iniciar a transferência de dados para o asset {selected_asset_id}.")
     else:
         print(f"Transferência concluída para o asset {selected_asset_id}.\n")
+        
