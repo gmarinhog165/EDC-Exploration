@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.lang.reflect.Type;
+import java.util.UUID;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -18,7 +19,7 @@ public class TransferS3 {
 
     // Step 1: Create asset and contract definition
     public String createAsset(AssetCatalogService service, String baseUrl,String bucketname,String objectName) throws Exception {
-        String assetId = "test-asset-" + System.currentTimeMillis() + "-" + objectName.replace(".", "-");
+        String assetId = "test-asset-" + System.currentTimeMillis() + "-" + UUID.randomUUID() + "-" + objectName.replace(".", "-");
         String description = "Test Asset created via Java";
         String region = "eu-west-1";
 
