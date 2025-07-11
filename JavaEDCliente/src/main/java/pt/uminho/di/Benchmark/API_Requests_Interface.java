@@ -1,11 +1,11 @@
-package pt.uminho.di;
+package pt.uminho.di.Benchmark;
 
 import java.util.List;
 
 /**
  * Interface for Asset Catalog Service that defines methods exposed from Python
  */
-public interface AssetCatalogServiceInterface {
+public interface API_Requests_Interface {
 
     /**
      * Get the catalog of assets

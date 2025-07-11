@@ -1,29 +1,30 @@
-package pt.uminho.di;
+package pt.uminho.di.Benchmark;
 
 
 import py4j.ClientServer;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implementation of AssetCatalogServiceInterface that connects to Python via py4j
  */
-public class AssetCatalogService implements AssetCatalogServiceInterface {
+public class API_Requests implements API_Requests_Interface {
 
 
-    private static final Logger LOGGER = Logger.getLogger(AssetCatalogService.class.getName());
-    private final AssetCatalogServiceInterface pythonService;
+    private static final Logger LOGGER = Logger.getLogger(API_Requests.class.getName());
+    private final API_Requests_Interface pythonService;
     private final ClientServer gateway;
 
-    public AssetCatalogService() throws UnknownHostException {
+    public API_Requests() throws UnknownHostException {
         this(InetAddress.getByName("localhost"), 25333, 25334);
     }
 
 
-    public AssetCatalogService(InetAddress host, int entryPort, int callbackPort) {
+    public API_Requests(InetAddress host, int entryPort, int callbackPort) {
         LOGGER.info("Connecting to Python gateway at " + host + ":" + entryPort);
 
         try {
@@ -34,8 +35,8 @@ public class AssetCatalogService implements AssetCatalogServiceInterface {
                     .pythonPort(callbackPort)  // Note: using pythonPort instead of callbackPort
                     .build();
 
-            pythonService = (AssetCatalogServiceInterface) gateway.getPythonServerEntryPoint(
-                    new Class[] { AssetCatalogServiceInterface.class });
+            pythonService = (API_Requests_Interface) gateway.getPythonServerEntryPoint(
+                    new Class[] { API_Requests_Interface.class });
             LOGGER.info("Connected to Python gateway successfully");
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Failed to connect to Python gateway", e);

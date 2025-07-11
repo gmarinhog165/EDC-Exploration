@@ -1,24 +1,25 @@
-package pt.uminho.di;
+package pt.uminho.di.Benchmark;
 
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.lang.reflect.Type;
-import java.util.UUID;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.github.cdimascio.dotenv.Dotenv;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import pt.uminho.di.Benchmark.API_Requests_Interface;
+
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 public class TransferS3 {
     private static final Dotenv dotenv = Dotenv.load();
     private static final String ENDPOINT_OVERRIDE = dotenv.get("ENDPOINT_OVERRIDE");
 
     // Step 1: Create asset and contract definition
-    public String createAsset(AssetCatalogService service, String baseUrl,String bucketname,String objectName) throws Exception {
+    public String createAsset(API_Requests_Interface service, String baseUrl, String bucketname, String objectName) throws Exception {
         String assetId = "test-asset-" + System.currentTimeMillis() + "-" + UUID.randomUUID() + "-" + objectName.replace(".", "-");
         String description = "Test Asset created via Java";
         String region = "eu-west-1";
@@ -51,7 +52,7 @@ public class TransferS3 {
     }
 
     // Step 2: Negotiate contract
-    public String negotiateContract(AssetCatalogService service, String assetId) throws Exception {
+    public String negotiateContract(API_Requests_Interface service, String assetId) throws Exception {
         System.out.println("\nNegotiating contract for asset: " + assetId);
         Gson gson = new Gson();
         Type mapType = new TypeToken<Map<String, String>>() {}.getType();
@@ -69,7 +70,7 @@ public class TransferS3 {
     }
 
     // Step 3: Transfer asset
-    public String transferAsset(AssetCatalogService service, String assetId, String agreementId,String destFileName,String destBucketName) throws Exception {
+    public String transferAsset(API_Requests_Interface service, String assetId, String agreementId,String destFileName,String destBucketName) throws Exception {
         System.out.println("\nTransferring asset...");
         Object response = service.transferToS3(assetId, agreementId, destFileName, "eu-west-1", destBucketName, ENDPOINT_OVERRIDE, 10, 2);
 
