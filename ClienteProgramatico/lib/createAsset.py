@@ -23,6 +23,7 @@ def lib_create_http_asset(asset_id, description, base_url, token, method, body, 
         .with_json_body(body)\
         .with_proxy_body(True)
     
+    print(f"ASSET ID 1: {asset_id}")
     asset = builder.with_data_address(http_builder).build()
     return asset
 
