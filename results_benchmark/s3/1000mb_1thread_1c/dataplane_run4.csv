@@ -1,0 +1,3 @@
+flow_id,received_time,started_time,completed_time,received_to_started_seconds,started_to_completed_seconds,total_duration_seconds
+834921d5-996a-4663-acfa-df7f2b3caae1,2025-07-23T13:12:05.486074,2025-07-23T13:12:06.244151,2025-07-23T13:12:19.510647,0.758,13.266,14.025
+AVERAGE,,,,0.758,13.266,14.025
