@@ -50,18 +50,6 @@ def http_asset_menu() -> None:
     token = input("Token de autenticação (opcional): ")
     method = input("Método HTTP (GET, POST, PUT, DELETE): ").upper()
 
-    # Se for POST, PUT ou PATCH, pedir o body
-    body = ""
-    if method in ["POST", "PUT", "PATCH"]:
-        body_input = input("Body JSON (deixe vazio para {}): ").strip()
-        if not body_input:
-            body = {}  # Use actual dict/object, not string
-        else:
-            try:
-                body = json.loads(body_input)  # Parse the JSON string
-            except json.JSONDecodeError:
-                print("Invalid JSON, using empty object")
-                body = {}
 
     #verificar e criar políticas
     access_policy_id, contract_policy_id = check_and_create_policies(
@@ -73,8 +61,9 @@ def http_asset_menu() -> None:
         return False
     
     #criar um http asset
-    created_asset_id = create_http_asset(provider_qna_url,asset_id,description,base_url, token,method, body,proxy_path,proxy_query)
     
+    created_asset_id = create_http_asset(provider_qna_url,asset_id,description,base_url, token,method,proxy_path,proxy_query)
+    print("CREATED = " + created_asset_id)
     if not created_asset_id:
         print("Falha ao criar asset. Operação cancelada.")
         return False
@@ -108,7 +97,7 @@ def http_asset_menu() -> None:
     #criar asset no provider-catalog-server com o mesmo ID mas URL diferente
     normal_asset_id = f"normal-{asset_id}"
     catalog_server_asset_id = create_http_asset(
-        provider_catalog_url, normal_asset_id, description, base_url,token, method, body, proxy_path,proxy_query
+        provider_catalog_url, normal_asset_id, description, base_url,token, method, proxy_path,proxy_query
     )
     
     if not catalog_server_asset_id:
@@ -334,7 +323,7 @@ def s3_asset_menu() -> None:
     if not access_policy_id or not contract_policy_id:
         print("Falha ao criar políticas. Operação cancelada.")
         return False
-    
+    print("Asset ID = " + asset_id)
     # Criar um S3 asset
     created_asset_id = create_s3_asset(
         provider_qna_url, asset_id, description, region, bucket_name, object_name, endpoint_override
