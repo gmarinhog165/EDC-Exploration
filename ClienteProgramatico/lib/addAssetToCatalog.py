@@ -76,6 +76,8 @@ def create_http_asset(base_url: str, asset_id: str, description: str, asset_url:
         asset_json = asset.to_json()
 
         print(f"Asset JSON: {asset_json}")
+
+        print(f"ASSET ID 2: {asset_id}")
         
         response = send_post_request(base_url, "/api/management/v3/assets", asset_json)
         if response is None:

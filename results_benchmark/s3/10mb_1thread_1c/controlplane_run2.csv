@@ -1,0 +1,2 @@
+contract_id,requested_timestamp,agreed_timestamp,verified_timestamp,contract_signature_time_seconds,policy_verification_time_seconds
+d1331089-0722-4299-80d3-019ce87a3c56,2025-07-23T10:04:15.228080,2025-07-23T10:04:16.186404,2025-07-23T10:04:16.242132,0.958,0.056

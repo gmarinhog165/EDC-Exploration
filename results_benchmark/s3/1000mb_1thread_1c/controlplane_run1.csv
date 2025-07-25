@@ -1,0 +1,3 @@
+contract_id,requested_timestamp,agreed_timestamp,verified_timestamp,contract_signature_time_seconds,policy_verification_time_seconds
+1a23bbb1-60ae-4c43-a18f-109a82301aff,2025-07-23T13:03:49.618345,2025-07-23T13:03:49.896070,2025-07-23T13:03:50.687254,0.278,0.791
+AVERAGE,,,,0.278,0.791
