@@ -1,0 +1,21 @@
+Run,Success,TotalTime(ms),AssetCreation(ms),Negotiation(ms),Transfer(ms)
+1,true,37266,984,19458,16824
+
+Summary
+Total Runs,1
+Successful Runs,1
+Total Ops,12
+Total Time(ms),37266.0
+Avg Latency(ms),3105.50
+Total Create Ops,4
+Total Negotiate Ops,4
+Total Transfer Ops,4
+
+Averages (Successful Runs Only)
+Avg Total Time(ms),37266.00
+Avg Asset Creation(ms),984.00
+Avg Negotiation(ms),19458.00
+Avg Transfer(ms),16824.00
+Avg Create Latency(ms),246.00
+Avg Negotiate Latency(ms),4864.50
+Avg Transfer Latency(ms),4206.00

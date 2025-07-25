@@ -436,5 +436,15 @@ public class Benchmark {
         public void setSuccessfulTransfers(int successfulTransfers) { this.successfulTransfers = successfulTransfers; }
     }
 
+    private double calculateStdDev(List<Long> values, double mean) {
+        if (values.size() <= 1) return 0.0;
+
+        double sumSquaredDiffs = 0.0;
+        for (long value : values) {
+            double diff = value - mean;
+            sumSquaredDiffs += diff * diff;
+        }
+        return Math.sqrt(sumSquaredDiffs / (values.size() - 1));
+    }
 
 }
