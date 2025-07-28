@@ -167,6 +167,16 @@ public class API_Requests implements API_Requests_Interface {
     }
 
     @Override
+    public String downloadFromHttp(String transferId) {
+        try {
+            return pythonService.downloadFromHttp(transferId);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error downloading HTTP data", e);
+            throw new RuntimeException("Error downloading HTTP data\"", e);
+        }
+    }
+
+    @Override
     public boolean transferToMongo(String assetId, String contractId, String filename,
                                    String connectionString, String collection, String database,
                                    int maxRetries, int retryInterval) {

@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv # type: ignore
 from time import sleep
 from typing import Dict, Optional, List, Union, Any
-from lib.sendRequests import send_post_request, send_get_request
+from lib.sendRequests import send_post_request, send_get_request, send_get_request_auth
 from reqCatalog.RequestCatalogBuilder import RequestCatalogBuilder
 from negotiation.NegotiationBuilder import NegotiationBuilder
 from transfer.TransferBuilder import TransferBuilder
@@ -169,6 +169,26 @@ def transfer_to_http(asset_id: str, contract_id: str, max_retries: int = 10,
     
     # Esperar pela conclusão da transferência
     return wait_for_transfer_completion(transfer_id, max_retries, retry_interval)
+
+def http_download_data(transfer_id):
+    print(f"Download de dados para Transfer ID: {transfer_id}")
+    ## Get EDR DataAddress for TransferID
+    host_consumer = os.getenv("HOST_CONSUMER", "")
+    endpoint = f"/api/management/v3/edrs/{transfer_id}/dataaddress"
+    response = send_get_request(host_consumer, endpoint)
+
+    auth = response.get("authorization")
+
+    ## Download Data from Public API
+    print(f"Download de dados do EDR com autorização: {auth}\n para o ID: {transfer_id}")
+
+    host_api = os.getenv("PUBLIC_API", "")
+    endpoint = "/api/public"
+    response = send_get_request_auth(host_api, endpoint, auth)
+    print("Download concluído.")
+    return response
+
+    
 
 
 def transfer_to_mongo(asset_id: str, contract_id: str, filename: str, 

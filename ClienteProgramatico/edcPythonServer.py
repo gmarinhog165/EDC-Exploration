@@ -17,6 +17,7 @@ from lib.transferAsset import (
     get_catalog, 
     negotiate_contract, 
     transfer_to_http, 
+    http_download_data,
     transfer_to_mongo, 
     transfer_to_s3,
     check_asset_in_catalog
@@ -85,6 +86,9 @@ class AssetCatalogService:
         result = transfer_to_http(asset_id, contract_id, max_retries, retry_interval)
         return json.dumps(result) if result is not None else None
 
+    def downloadFromHttp(self, transfer_id):
+        result = http_download_data(transfer_id)
+        return json.dumps(result) if result is not None else None
 
     def transferToMongo(self, asset_id, contract_id, filename, connection_string,
                         collection, database, max_retries=10, retry_interval=2):
