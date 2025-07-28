@@ -39,9 +39,9 @@ class AssetCatalogService:
     def __init__(self):
         self.gateway = None
 
-    def createHttpAsset(self, base_url, asset_id, description, asset_url, proxy_path, proxy_query):
-        return create_http_asset(base_url, asset_id, description, asset_url,
-                                 proxy_path=proxy_path, proxy_query=proxy_query)
+    def createHttpAsset(self, base_url, asset_id, description, asset_url, proxy_path, proxy_query,token,method):
+        return create_http_asset(base_url, asset_id, description, asset_url,token,method,
+                                 proxy_path, proxy_query)
 
     def createMongoAsset(self, base_url, asset_id, description, conn_string, database, collection, query):
         return create_mongo_asset(base_url, asset_id, description, conn_string, database, collection, query)
@@ -82,7 +82,9 @@ class AssetCatalogService:
         return negotiate_contract(asset_id, policy_id, max_retries, retry_interval)
 
     def transferToHttp(self, asset_id, contract_id, max_retries=10, retry_interval=2):
-        return transfer_to_http(asset_id, contract_id, max_retries, retry_interval)
+        result = transfer_to_http(asset_id, contract_id, max_retries, retry_interval)
+        return json.dumps(result) if result is not None else None
+
 
     def transferToMongo(self, asset_id, contract_id, filename, connection_string,
                         collection, database, max_retries=10, retry_interval=2):
