@@ -11,6 +11,8 @@ import java.util.concurrent.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Benchmark {
     // environment vars
@@ -48,9 +50,7 @@ public class Benchmark {
     }
 
     private void executeRun(int runNumber) {
-
-
-        RunResult runResult = new RunResult(runNumber,ASSET_URL);
+        RunResult runResult = new RunResult(runNumber, ASSET_URL);
 
         try {
             // Step 1: Create assets and get TransferTask objects
@@ -67,12 +67,17 @@ public class Benchmark {
 
             // Step 3: Transfer assets using the same TransferTask objects
             System.out.println("Transferring assets...");
-            transferAssets(transferTasks, runResult);
+            List<String> transferIds = transferAssets(transferTasks, runResult);
+
+            // Step 4: Download data using transfer IDs
+            System.out.println("Downloading data...");
+            downloadData(transferIds, runResult, runNumber);
 
             // Calculate total effective time (sum of all operation times)
             long totalEffectiveTime = runResult.getAssetCreationTime() +
                     runResult.getNegotiationTime() +
-                    runResult.getTransferTime();
+                    runResult.getTransferTime() +
+                    runResult.getDownloadTime();
             runResult.setTotalTime(totalEffectiveTime);
             runResult.setSuccess(true);
 
@@ -195,7 +200,7 @@ public class Benchmark {
         System.out.println("Total negotiation time: " + totalNegotiationTime + "ms");
     }
 
-    private void transferAssets(List<TransferTask> transferTasks, RunResult runResult) throws Exception {
+    private List<String> transferAssets(List<TransferTask> transferTasks, RunResult runResult) throws Exception {
         System.out.println("Transferring " + transferTasks.size() + " assets");
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
@@ -211,7 +216,7 @@ public class Benchmark {
                     System.out.println("Transferring asset " + (taskId + 1) + "/" + transferTasks.size());
 
                     String response = task.transfer(http, apiRequests);
-                    System.out.println(response);
+                    System.out.println("1 " + response);
                     LocalDateTime taskEnd = LocalDateTime.now();
                     long taskTime = Duration.between(taskStart, taskEnd).toMillis();
 
@@ -238,10 +243,13 @@ public class Benchmark {
         // Wait for all tasks to complete and collect results
         int successfulTransfers = 0;
         long totalTransferTime = 0;
+        List<String> transferIds = new ArrayList<>();
+
         for (Future<TransferResult> future : futures) {
             TransferResult result = future.get();
             if (result.response != null) {
                 successfulTransfers++;
+                transferIds.add(result.response); // Assuming response contains the transferId
             }
             totalTransferTime += result.executionTime;
         }
@@ -254,6 +262,85 @@ public class Benchmark {
 
         System.out.println("Asset transfer completed: " + successfulTransfers + "/" + transferTasks.size() + " transfers successful");
         System.out.println("Total transfer time: " + totalTransferTime + "ms");
+
+        return transferIds;
+    }
+
+    // New method to download data
+    private void downloadData(List<String> transferIds, RunResult runResult, int runNumber) throws Exception {
+        System.out.println("Downloading data for " + transferIds.size() + " transfers");
+
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
+        List<Future<DownloadResult>> futures = new ArrayList<>();
+
+        for (int i = 0; i < transferIds.size(); i++) {
+            final int taskId = i;
+            final String transferId = transferIds.get(i);
+
+            futures.add(executor.submit(() -> {
+                try {
+                    LocalDateTime taskStart = LocalDateTime.now();
+                    System.out.println("Downloading data " + (taskId + 1) + "/" + transferIds.size());
+
+                    // Call the download method (assuming it's available through apiRequests or http)
+                    String downloadedData = downloadFromHttp(transferId);
+
+                    LocalDateTime taskEnd = LocalDateTime.now();
+                    long taskTime = Duration.between(taskStart, taskEnd).toMillis();
+
+                    synchronized (this) {
+                        totalTime += taskTime;
+                        totalOps++;
+                    }
+
+                    if (downloadedData != null) {
+                        System.out.println("Data " + (taskId + 1) + " downloaded successfully in " + taskTime + "ms");
+
+                        // Write to file (time not included in benchmark)
+                        try {
+                            String fileName = "downloaded_data_run" + runNumber + "_task" + (taskId + 1) + ".json";
+                            Files.write(Paths.get(fileName), downloadedData.getBytes());
+                        } catch (IOException e) {
+                            System.err.println("Failed to write downloaded data to file: " + e.getMessage());
+                        }
+                    } else {
+                        System.err.println("Data " + (taskId + 1) + " download failed");
+                    }
+
+                    return new DownloadResult(downloadedData, taskTime);
+
+                } catch (Exception e) {
+                    System.err.println("Failed to download data " + (taskId + 1) + ": " + e.getMessage());
+                    throw new RuntimeException(e);
+                }
+            }));
+        }
+
+        // Wait for all tasks to complete and collect results
+        int successfulDownloads = 0;
+        long totalDownloadTime = 0;
+
+        for (Future<DownloadResult> future : futures) {
+            DownloadResult result = future.get();
+            if (result.data != null) {
+                successfulDownloads++;
+            }
+            totalDownloadTime += result.executionTime;
+        }
+
+        executor.shutdown();
+
+        // Set the sum of all individual task times
+        runResult.setDownloadTime(totalDownloadTime);
+        runResult.setSuccessfulDownloads(successfulDownloads);
+
+        System.out.println("Data download completed: " + successfulDownloads + "/" + transferIds.size() + " downloads successful");
+        System.out.println("Total download time: " + totalDownloadTime + "ms");
+    }
+
+    // Method to download data using the existing infrastructure
+    public String downloadFromHttp(String transferId) throws Exception {
+        return http.downloadFromHttp(apiRequests, transferId);
     }
 
     private void printFinalResults() {
@@ -272,11 +359,13 @@ public class Benchmark {
         int totalCreateOps = successfulRuns * THREAD_COUNT;
         int totalNegotiateOps = successfulRuns * THREAD_COUNT;
         int totalTransferOps = successfulRuns * THREAD_COUNT;
+        int totalDownloadOps = successfulRuns * THREAD_COUNT;
 
         System.out.println("Operations breakdown:");
         System.out.println("  - Asset creation operations: " + totalCreateOps);
         System.out.println("  - Contract negotiation operations: " + totalNegotiateOps);
         System.out.println("  - Asset transfer operations: " + totalTransferOps);
+        System.out.println("  - Data download operations: " + totalDownloadOps);
 
         System.out.println("\nPer-run results:");
         for (RunResult result : runResults) {
@@ -285,14 +374,15 @@ public class Benchmark {
                     " - Total effective: " + result.getTotalTime() + "ms" +
                     " - Create: " + result.getAssetCreationTime() + "ms" +
                     " - Negotiate: " + result.getNegotiationTime() + "ms" +
-                    " - Transfer: " + result.getTransferTime() + "ms");
+                    " - Transfer: " + result.getTransferTime() + "ms" +
+                    " - Download: " + result.getDownloadTime() + "ms");
         }
 
         List<RunResult> successfulRunsList = runResults.stream()
                 .filter(RunResult::isSuccess)
                 .toList();
 
-        double avgTotalTime = 0, avgCreateTime = 0, avgNegotiateTime = 0, avgTransferTime = 0;
+        double avgTotalTime = 0, avgCreateTime = 0, avgNegotiateTime = 0, avgTransferTime = 0, avgDownloadTime = 0;
         if (!successfulRunsList.isEmpty()) {
             avgTotalTime = successfulRunsList.stream()
                     .mapToLong(RunResult::getTotalTime)
@@ -314,21 +404,29 @@ public class Benchmark {
                     .average()
                     .orElse(0);
 
+            avgDownloadTime = successfulRunsList.stream()
+                    .mapToLong(RunResult::getDownloadTime)
+                    .average()
+                    .orElse(0);
+
             System.out.println("\nAverages (successful runs only):");
             System.out.println("Average total effective time: " + String.format("%.2f", avgTotalTime) + "ms");
             System.out.println("Average asset creation time: " + String.format("%.2f", avgCreateTime) + "ms");
             System.out.println("Average negotiation time: " + String.format("%.2f", avgNegotiateTime) + "ms");
             System.out.println("Average transfer time: " + String.format("%.2f", avgTransferTime) + "ms");
+            System.out.println("Average download time: " + String.format("%.2f", avgDownloadTime) + "ms");
 
             if (successfulRuns > 0) {
                 double avgCreateLatency = avgCreateTime / THREAD_COUNT;
                 double avgNegotiateLatency = avgNegotiateTime / THREAD_COUNT;
                 double avgTransferLatency = avgTransferTime / THREAD_COUNT;
+                double avgDownloadLatency = avgDownloadTime / THREAD_COUNT;
 
                 System.out.println("\nAverage latency per operation:");
                 System.out.println("Asset creation: " + String.format("%.2f", avgCreateLatency) + "ms");
                 System.out.println("Contract negotiation: " + String.format("%.2f", avgNegotiateLatency) + "ms");
                 System.out.println("Asset transfer: " + String.format("%.2f", avgTransferLatency) + "ms");
+                System.out.println("Data download: " + String.format("%.2f", avgDownloadLatency) + "ms");
             }
         }
 
@@ -336,15 +434,16 @@ public class Benchmark {
 
         // Write results to CSV
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("benchmark_results.csv"))) {
-            writer.write("Run,Success,TotalTime(ms),AssetCreation(ms),Negotiation(ms),Transfer(ms)\n");
+            writer.write("Run,Success,TotalTime(ms),AssetCreation(ms),Negotiation(ms),Transfer(ms),Download(ms)\n");
             for (RunResult result : runResults) {
-                writer.write(String.format("%d,%b,%d,%d,%d,%d\n",
+                writer.write(String.format("%d,%b,%d,%d,%d,%d,%d\n",
                         result.getRunNumber(),
                         result.isSuccess(),
                         result.getTotalTime(),
                         result.getAssetCreationTime(),
                         result.getNegotiationTime(),
-                        result.getTransferTime()));
+                        result.getTransferTime(),
+                        result.getDownloadTime()));
             }
 
             writer.newLine();
@@ -358,6 +457,7 @@ public class Benchmark {
             writer.write("Total Create Ops," + totalCreateOps + "\n");
             writer.write("Total Negotiate Ops," + totalNegotiateOps + "\n");
             writer.write("Total Transfer Ops," + totalTransferOps + "\n");
+            writer.write("Total Download Ops," + totalDownloadOps + "\n");
 
             if (successfulRuns > 0) {
                 writer.write("\nAverages (Successful Runs Only)\n");
@@ -365,9 +465,11 @@ public class Benchmark {
                 writer.write("Avg Asset Creation(ms)," + String.format("%.2f", avgCreateTime) + "\n");
                 writer.write("Avg Negotiation(ms)," + String.format("%.2f", avgNegotiateTime) + "\n");
                 writer.write("Avg Transfer(ms)," + String.format("%.2f", avgTransferTime) + "\n");
+                writer.write("Avg Download(ms)," + String.format("%.2f", avgDownloadTime) + "\n");
                 writer.write("Avg Create Latency(ms)," + String.format("%.2f", avgCreateTime / THREAD_COUNT) + "\n");
                 writer.write("Avg Negotiate Latency(ms)," + String.format("%.2f", avgNegotiateTime / THREAD_COUNT) + "\n");
                 writer.write("Avg Transfer Latency(ms)," + String.format("%.2f", avgTransferTime / THREAD_COUNT) + "\n");
+                writer.write("Avg Download Latency(ms)," + String.format("%.2f", avgDownloadTime / THREAD_COUNT) + "\n");
             }
 
             writer.flush();
@@ -396,7 +498,18 @@ public class Benchmark {
         }
     }
 
-    // Simple class to store run results
+    // New class for download results
+    class DownloadResult {
+        final String data;
+        final long executionTime;
+
+        DownloadResult(String data, long executionTime) {
+            this.data = data;
+            this.executionTime = executionTime;
+        }
+    }
+
+    // Updated RunResult class to include download metrics
     class RunResult {
         private int runNumber;
         private String fileName;
@@ -404,8 +517,10 @@ public class Benchmark {
         private long assetCreationTime;
         private long negotiationTime;
         private long transferTime;
+        private long downloadTime;
         private boolean success;
         private int successfulTransfers;
+        private int successfulDownloads;
 
         public RunResult(int runNumber, String fileName) {
             this.runNumber = runNumber;
@@ -423,10 +538,14 @@ public class Benchmark {
         public void setNegotiationTime(long negotiationTime) { this.negotiationTime = negotiationTime; }
         public long getTransferTime() { return transferTime; }
         public void setTransferTime(long transferTime) { this.transferTime = transferTime; }
+        public long getDownloadTime() { return downloadTime; }
+        public void setDownloadTime(long downloadTime) { this.downloadTime = downloadTime; }
         public boolean isSuccess() { return success; }
         public void setSuccess(boolean success) { this.success = success; }
         public int getSuccessfulTransfers() { return successfulTransfers; }
         public void setSuccessfulTransfers(int successfulTransfers) { this.successfulTransfers = successfulTransfers; }
+        public int getSuccessfulDownloads() { return successfulDownloads; }
+        public void setSuccessfulDownloads(int successfulDownloads) { this.successfulDownloads = successfulDownloads; }
     }
 
     private double calculateStdDev(List<Long> values, double mean) {
@@ -439,5 +558,4 @@ public class Benchmark {
         }
         return Math.sqrt(sumSquaredDiffs / (values.size() - 1));
     }
-
 }

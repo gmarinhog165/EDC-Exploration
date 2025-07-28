@@ -106,6 +106,7 @@ public interface API_Requests_Interface {
      */
     String transferToHttp(String assetId, String contractId, int maxRetries, int retryInterval);
 
+    String downloadFromHttp(String transferId);
     /**
      * Transfer to MongoDB
      * @param assetId Asset ID

@@ -31,4 +31,10 @@ public class TransferTask {
             throw new IllegalStateException("Asset and contract must be prepared before transfer.");
         return http.transferAsset(service, assetId, contractAgreementId);
     }
+
+    public String downloadData(TransferHTTP http, API_Requests_Interface service, String transferId) throws Exception {
+        if (transferId == null)
+            throw new IllegalStateException("Transfer ID must be available before downloading.");
+        return http.downloadFromHttp(service, transferId);
+    }
 }

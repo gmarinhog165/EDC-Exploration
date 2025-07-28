@@ -81,6 +81,10 @@ public class TransferHTTP {
         return root.path("@id").asText(null);
     }
 
+    public String downloadFromHttp(API_Requests_Interface service, String transferId) throws Exception {
+        System.out.println("\nDownloading data for transfer ID: " + transferId);
+        return service.downloadFromHttp(transferId);
+    }
 
     // Pretty JSON for printing
     private static String prettifyJson(String json) {
