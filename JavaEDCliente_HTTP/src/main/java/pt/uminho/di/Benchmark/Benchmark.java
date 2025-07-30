@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
@@ -31,8 +32,8 @@ public class Benchmark {
     private API_Requests_Interface apiRequests;
     private TransferHTTP http;
 
-    public Benchmark() throws UnknownHostException {
-        this.apiRequests = new API_Requests(InetAddress.getByName("localhost"), 25333, 25334);
+    public Benchmark(int port) throws UnknownHostException {
+        this.apiRequests = new API_Requests(InetAddress.getByName("localhost"), port, port+1);
         this.http = new TransferHTTP();
     }
 
@@ -431,9 +432,11 @@ public class Benchmark {
         }
 
         System.out.println("=".repeat(50));
-
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedNow = now.format(formatter);
         // Write results to CSV
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("benchmark_results.csv"))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("benchmark_results_"+formattedNow+".csv"))) {
             writer.write("Run,Success,TotalTime(ms),AssetCreation(ms),Negotiation(ms),Transfer(ms),Download(ms)\n");
             for (RunResult result : runResults) {
                 writer.write(String.format("%d,%b,%d,%d,%d,%d,%d\n",

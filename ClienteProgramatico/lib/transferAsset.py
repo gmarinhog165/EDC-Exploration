@@ -185,7 +185,6 @@ def http_download_data(transfer_id):
     host_api = os.getenv("PUBLIC_API", "")
     endpoint = "/api/public"
     response = send_get_request_auth(host_api, endpoint, auth)
-    print("Download concluído.")
     return response
 
     
