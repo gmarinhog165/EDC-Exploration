@@ -124,8 +124,8 @@ def start_gateway_server():
     service = AssetCatalogService()
     
     # Configure and start the gateway server
-    gateway_params = GatewayParameters(port=25333, auto_convert=True)
-    callback_params = CallbackServerParameters(port=25334)
+    gateway_params = GatewayParameters(port=int(sys.argv[1]), auto_convert=True)
+    callback_params = CallbackServerParameters(port=int(sys.argv[1]) + 1)
     
     gateway = JavaGateway(
         gateway_parameters=gateway_params,
