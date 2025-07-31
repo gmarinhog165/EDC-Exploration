@@ -1,0 +1,4 @@
+contract_id,requested_timestamp,agreed_timestamp,verified_timestamp,contract_signature_time_seconds,policy_verification_time_seconds
+962d01d4-7e90-4ee1-aee1-98bb853195ef,2025-07-31T09:38:31.184175,2025-07-31T09:38:31.832348,2025-07-31T09:38:32.272294,0.648,0.44
+9a37dda9-63cd-440f-af5a-bf263445a5a0,2025-07-31T09:38:35.446743,2025-07-31T09:38:35.990749,2025-07-31T09:38:36.475994,0.544,0.485
+AVERAGE,,,,0.5960000000000001,0.4625
