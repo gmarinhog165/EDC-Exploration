@@ -1,0 +1,2 @@
+flow_id,received_time,started_time,completed_time,received_to_started_seconds,started_to_completed_seconds,total_duration_seconds
+AVERAGE,,,,,,
