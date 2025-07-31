@@ -1,0 +1,130 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< com.assetcatalog:asset-catalog-bridge >----------------
+[INFO] Building asset-catalog-bridge 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- exec:3.5.1:java (default-cli) @ asset-catalog-bridge ---
+3030
+jul. 31, 2025 3:32:43 DA TARDE pt.uminho.di.Benchmark.API_Requests <init>
+INFO: Connecting to Python gateway at localhost/127.0.0.1:3030
+jul. 31, 2025 3:32:43 DA TARDE pt.uminho.di.Benchmark.API_Requests <init>
+INFO: Connected to Python gateway successfully
+Starting benchmark with 1 runs...
+Thread count: 4
+==================================================
+
+--- Run 1/1 ---
+Selected file: 100mb.txt
+Creating assets...
+Creating 4 assets for file: 100mb.txt
+Creating asset 2/4
+Creating asset 3/4
+Creating asset 4/4
+Creating asset 1/4
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+Created asset ID: test-asset-1753972364403-624cdc49-2ed9-485f-af25-a6393eb861b3-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753972364403-b1a7376e-0ad9-44b3-802b-ed9aa4a07a1c-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753972364403-5f9b7253-9b99-48a9-9fa9-b8dd47b41431-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753972364403-969c09d9-f055-42c6-82ea-c535772c91ac-100mb-txt
+
+Creating policies...
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Asset 2 created in 105ms
+Asset 3 created in 122ms
+Asset 1 created in 123ms
+Asset 4 created in 122ms
+Asset creation completed: 4/4 assets created
+Total asset creation time: 472ms
+Waiting for catalog update...
+Negotiating contracts...
+Negotiating contracts for 4 assets
+Negotiating contract 1/4
+
+Negotiating contract for asset: test-asset-1753972364403-969c09d9-f055-42c6-82ea-c535772c91ac-100mb-txt
+Negotiating contract 2/4
+
+Negotiating contract for asset: test-asset-1753972364403-624cdc49-2ed9-485f-af25-a6393eb861b3-100mb-txt
+Negotiating contract 3/4
+
+Negotiating contract for asset: test-asset-1753972364403-5f9b7253-9b99-48a9-9fa9-b8dd47b41431-100mb-txt
+Negotiating contract 4/4
+
+Negotiating contract for asset: test-asset-1753972364403-b1a7376e-0ad9-44b3-802b-ed9aa4a07a1c-100mb-txt
+Negotiated Contract Agreement ID: 0afa25d5-d96a-40f6-9e90-d751cec302b5
+Contract 2 negotiated in 10805ms
+Negotiated Contract Agreement ID: 38f22cab-85b0-4d0b-967f-641eaecede7b
+Negotiated Contract Agreement ID: 53e5ce14-218b-42a2-a1e0-f0c2a80db277
+Contract 1 negotiated in 10808ms
+Negotiated Contract Agreement ID: 0278f878-023e-42ae-afba-43eb09828efa
+Contract 3 negotiated in 10807ms
+Contract 4 negotiated in 10807ms
+Contract negotiation completed
+Total negotiation time: 43227ms
+Transferring assets...
+Transferring 4 assets
+Transferring asset 1/4
+
+Transferring asset...
+Transferring asset 3/4
+
+Transferring asset...
+Transferring asset 2/4
+
+Transferring asset...
+Transferring asset 4/4
+
+Transferring asset...
+Asset 1 transferred successfully in 4444ms
+Asset 3 transferred successfully in 4444ms
+Asset 2 transferred successfully in 4444ms
+Asset 4 transferred successfully in 4443ms
+Asset transfer completed: 4/4 transfers successful
+Total transfer time: 17775ms
+Run 1 completed successfully
+Total effective time: 61474ms
+
+==================================================
+BENCHMARK RESULTS
+==================================================
+Total runs: 1
+Successful runs: 1
+Total operations: 12
+Total effective time: 61474.0ms
+Average latency per operation: 5122,83ms
+Operations breakdown:
+  - Asset creation operations: 4
+  - Contract negotiation operations: 4
+  - Asset transfer operations: 4
+
+Per-run results:
+Run 1 - Success: true - Total effective: 61474ms - Create: 472ms - Negotiate: 43227ms - Transfer: 17775ms
+
+Averages (successful runs only):
+Average total effective time: 61474,00ms
+Average asset creation time: 472,00ms
+Average negotiation time: 43227,00ms
+Average transfer time: 17775,00ms
+
+Average latency per operation:
+Asset creation: 118,00ms
+Contract negotiation: 10806,75ms
+Asset transfer: 4443,75ms
+==================================================

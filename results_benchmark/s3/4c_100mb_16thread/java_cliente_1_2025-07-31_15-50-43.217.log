@@ -1,0 +1,334 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< com.assetcatalog:asset-catalog-bridge >----------------
+[INFO] Building asset-catalog-bridge 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- exec:3.5.1:java (default-cli) @ asset-catalog-bridge ---
+3000
+jul. 31, 2025 3:50:46 DA TARDE pt.uminho.di.Benchmark.API_Requests <init>
+INFO: Connecting to Python gateway at localhost/127.0.0.1:3000
+jul. 31, 2025 3:50:46 DA TARDE pt.uminho.di.Benchmark.API_Requests <init>
+INFO: Connected to Python gateway successfully
+Starting benchmark with 1 runs...
+Thread count: 16
+==================================================
+
+--- Run 1/1 ---
+Selected file: 100mb.txt
+Creating assets...
+Creating 16 assets for file: 100mb.txt
+Creating asset 1/16
+Creating asset 2/16
+Creating asset 5/16
+Creating asset 3/16
+Creating asset 7/16
+Creating asset 4/16
+Creating asset 8/16
+Creating asset 6/16
+Creating asset 10/16
+Creating asset 9/16
+Creating asset 11/16
+Creating asset 12/16
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+
+Creating S3 Asset...
+Creating asset 13/16
+
+Creating S3 Asset...
+Creating asset 14/16
+
+Creating S3 Asset...
+Creating asset 15/16
+
+Creating S3 Asset...
+Creating asset 16/16
+
+Creating S3 Asset...
+Created asset ID: test-asset-1753973446578-a9eed003-df76-43a2-a56b-bc475a36d8ca-100mb-txt
+Created asset ID: test-asset-1753973446578-26e9d5e3-efd3-470c-b9c5-4cdcf506f798-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446584-97e5cd58-499e-4637-ab8b-7802af571f02-100mb-txt
+
+Creating policies...
+
+Creating policies...
+Created asset ID: test-asset-1753973446576-31c0e537-7f29-4e1d-91f5-18ce7acca008-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446582-1b99c34f-3a61-4979-9c9f-0f757b45f229-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446583-629edc6a-ef9c-4998-a2e7-4dabe8437849-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446577-bba42165-b6ea-4472-83d5-9f71bced97f8-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446576-606a5e78-afb4-43b8-9f07-ae33caca4ffd-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446586-1b842638-fec9-4126-bbd8-234dacfb59ff-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446578-bdf5fbaf-e6ff-4c27-a72e-e4ceeea0b773-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446577-f728e20b-2458-4847-8b03-06279c1c5427-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446600-b52e81ba-c6e1-40a0-a9c6-f8beb501b2b8-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446603-11d0bc86-c291-4a47-abcb-3c8bc347014e-100mb-txt
+Created asset ID: test-asset-1753973446584-1f94c683-fd86-4eb2-8013-376cb0d934e3-100mb-txt
+
+Creating policies...
+
+Creating policies...
+Created asset ID: test-asset-1753973446602-29083751-c282-4de3-9162-783e130dfa38-100mb-txt
+
+Creating policies...
+Created asset ID: test-asset-1753973446604-7ba3838d-78a8-4c3e-bf90-b4156af21773-100mb-txt
+
+Creating policies...
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Created policy IDs: [require-membership, require-dataprocessor]
+Asset 6 created in 1398ms
+Asset 12 created in 1383ms
+Created policy IDs: [require-membership, require-dataprocessor]
+Asset 2 created in 1405ms
+Asset 4 created in 1402ms
+Asset 11 created in 1403ms
+Asset 16 created in 1394ms
+Asset 5 created in 1422ms
+Asset 10 created in 1425ms
+Asset 13 created in 1412ms
+Asset 7 created in 1435ms
+Asset 8 created in 1446ms
+Asset 3 created in 1457ms
+Asset 9 created in 1462ms
+Asset 14 created in 1441ms
+Asset 15 created in 1443ms
+Asset 1 created in 1476ms
+Asset creation completed: 16/16 assets created
+Total asset creation time: 22804ms
+Waiting for catalog update...
+Negotiating contracts...
+Negotiating contracts for 16 assets
+Negotiating contract 1/16
+Negotiating contract 2/16
+
+Negotiating contract for asset: test-asset-1753973446576-606a5e78-afb4-43b8-9f07-ae33caca4ffd-100mb-txt
+
+Negotiating contract for asset: test-asset-1753973446576-31c0e537-7f29-4e1d-91f5-18ce7acca008-100mb-txt
+Negotiating contract 3/16
+
+Negotiating contract for asset: test-asset-1753973446577-f728e20b-2458-4847-8b03-06279c1c5427-100mb-txt
+Negotiating contract 4/16
+
+Negotiating contract for asset: test-asset-1753973446578-a9eed003-df76-43a2-a56b-bc475a36d8ca-100mb-txt
+Negotiating contract 5/16
+
+Negotiating contract for asset: test-asset-1753973446577-bba42165-b6ea-4472-83d5-9f71bced97f8-100mb-txt
+Negotiating contract 6/16
+
+Negotiating contract for asset: test-asset-1753973446582-1b99c34f-3a61-4979-9c9f-0f757b45f229-100mb-txt
+Negotiating contract 7/16
+
+Negotiating contract for asset: test-asset-1753973446578-26e9d5e3-efd3-470c-b9c5-4cdcf506f798-100mb-txt
+Negotiating contract 8/16
+
+Negotiating contract for asset: test-asset-1753973446578-bdf5fbaf-e6ff-4c27-a72e-e4ceeea0b773-100mb-txt
+Negotiating contract 9/16
+
+Negotiating contract for asset: test-asset-1753973446584-97e5cd58-499e-4637-ab8b-7802af571f02-100mb-txt
+Negotiating contract 10/16
+
+Negotiating contract for asset: test-asset-1753973446583-629edc6a-ef9c-4998-a2e7-4dabe8437849-100mb-txt
+Negotiating contract 11/16
+
+Negotiating contract for asset: test-asset-1753973446584-1f94c683-fd86-4eb2-8013-376cb0d934e3-100mb-txt
+Negotiating contract 12/16
+
+Negotiating contract for asset: test-asset-1753973446586-1b842638-fec9-4126-bbd8-234dacfb59ff-100mb-txt
+Negotiating contract 13/16
+
+Negotiating contract for asset: test-asset-1753973446600-b52e81ba-c6e1-40a0-a9c6-f8beb501b2b8-100mb-txt
+Negotiating contract 14/16
+
+Negotiating contract for asset: test-asset-1753973446602-29083751-c282-4de3-9162-783e130dfa38-100mb-txt
+Negotiating contract 15/16
+
+Negotiating contract for asset: test-asset-1753973446603-11d0bc86-c291-4a47-abcb-3c8bc347014e-100mb-txt
+Negotiating contract 16/16
+
+Negotiating contract for asset: test-asset-1753973446604-7ba3838d-78a8-4c3e-bf90-b4156af21773-100mb-txt
+Negotiated Contract Agreement ID: 19e3c661-0b77-4e37-87f0-779420d000e6
+Contract 7 negotiated in 5395ms
+Negotiated Contract Agreement ID: 9fa80c46-07d2-4630-ad61-92d00fff10e5
+Contract 1 negotiated in 5435ms
+Negotiated Contract Agreement ID: 20e5ebf6-a644-4148-b51e-fe65f1e47e7e
+Contract 10 negotiated in 5425ms
+Negotiated Contract Agreement ID: af07da16-b4da-42b8-85c9-c0dcb8627814
+Negotiated Contract Agreement ID: 04d778c8-6287-41c8-a252-ca2bb46b93ce
+Contract 12 negotiated in 5436ms
+Contract 9 negotiated in 5438ms
+Negotiated Contract Agreement ID: 50166812-ac6f-49e2-8b4e-6b50e2676f63
+Contract 2 negotiated in 5555ms
+Negotiated Contract Agreement ID: 8ea68d58-c7e1-439e-8a62-1dba8e06eb13
+Contract 15 negotiated in 5540ms
+Negotiated Contract Agreement ID: 06362b82-0280-407e-943f-dd75779b42b0
+Contract 11 negotiated in 5549ms
+Negotiated Contract Agreement ID: 2163ab69-4cda-4916-8291-aa4269c881b2
+Contract 5 negotiated in 5577ms
+Negotiated Contract Agreement ID: 73cb8292-32fa-408a-9c7b-58cde100d5cd
+Contract 13 negotiated in 5865ms
+Negotiated Contract Agreement ID: 12f02237-aa7a-41df-91c3-1d538f99d0e6
+Contract 6 negotiated in 5907ms
+Negotiated Contract Agreement ID: bf40bb57-4e4c-4c9a-bf98-7324083b2d8d
+Contract 16 negotiated in 5930ms
+Negotiated Contract Agreement ID: 6a728134-c941-40ed-a6c9-a59e499ac798
+Contract 4 negotiated in 5952ms
+Negotiated Contract Agreement ID: b449a489-82c5-4b19-8729-c3536f117e74
+Contract 14 negotiated in 5960ms
+Negotiated Contract Agreement ID: 3be29ded-6ac9-4ea9-992b-508ef2b327b8
+Contract 3 negotiated in 6038ms
+Negotiated Contract Agreement ID: 138a3e59-4d29-4cc5-8554-7acaca13d456
+Contract 8 negotiated in 6052ms
+Contract negotiation completed
+Total negotiation time: 91054ms
+Transferring assets...
+Transferring 16 assets
+Transferring asset 1/16
+
+Transferring asset...
+Transferring asset 2/16
+
+Transferring asset...
+Transferring asset 3/16
+
+Transferring asset...
+Transferring asset 4/16
+
+Transferring asset...
+Transferring asset 5/16
+
+Transferring asset...
+Transferring asset 6/16
+
+Transferring asset...
+Transferring asset 7/16
+
+Transferring asset...
+Transferring asset 8/16
+
+Transferring asset...
+Transferring asset 9/16
+
+Transferring asset...
+Transferring asset 10/16
+
+Transferring asset...
+Transferring asset 11/16
+
+Transferring asset...
+Transferring asset 12/16
+
+Transferring asset...
+Transferring asset 13/16
+
+Transferring asset...
+Transferring asset 14/16
+
+Transferring asset...
+Transferring asset 15/16
+
+Transferring asset...
+Transferring asset 16/16
+
+Transferring asset...
+Asset 4 transferred successfully in 4523ms
+Asset 1 transferred successfully in 4527ms
+Asset 5 transferred successfully in 4522ms
+Asset 9 transferred successfully in 4514ms
+Asset 2 transferred successfully in 4526ms
+Asset 6 transferred successfully in 4519ms
+Asset 3 transferred successfully in 4525ms
+Asset 10 transferred successfully in 5562ms
+Asset 7 transferred successfully in 6426ms
+Asset 8 transferred successfully in 6511ms
+Asset 16 transferred successfully in 7364ms
+Asset 15 transferred successfully in 7491ms
+Asset 11 transferred successfully in 7563ms
+Asset 12 transferred successfully in 7570ms
+Asset 13 transferred successfully in 7622ms
+Asset 14 transferred successfully in 7854ms
+Asset transfer completed: 16/16 transfers successful
+Total transfer time: 95619ms
+Run 1 completed successfully
+Total effective time: 209477ms
+
+==================================================
+BENCHMARK RESULTS
+==================================================
+Total runs: 1
+Successful runs: 1
+Total operations: 48
+Total effective time: 209477.0ms
+Average latency per operation: 4364,10ms
+Operations breakdown:
+  - Asset creation operations: 16
+  - Contract negotiation operations: 16
+  - Asset transfer operations: 16
+
+Per-run results:
+Run 1 - Success: true - Total effective: 209477ms - Create: 22804ms - Negotiate: 91054ms - Transfer: 95619ms
+
+Averages (successful runs only):
+Average total effective time: 209477,00ms
+Average asset creation time: 22804,00ms
+Average negotiation time: 91054,00ms
+Average transfer time: 95619,00ms
+
+Average latency per operation:
+Asset creation: 1425,25ms
+Contract negotiation: 5690,88ms
+Asset transfer: 5976,19ms
+==================================================
