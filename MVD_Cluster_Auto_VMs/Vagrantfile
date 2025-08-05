@@ -1,0 +1,95 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+# Notes
+# user name for VMs is created as vagrant
+
+# <vagrant box add bento/ubuntu-24.04> to add OS image to internal repository
+# <vagrant up> to start VMs (run at the same folder where this file is, or pass file as argument)
+# <vagrant halt> to stop VMs
+# <vagrant destroy> to remove VMs
+
+# Variables
+PUBLIC_KEY_PATH = "~/.ssh/id_rsa.pub" # Change me if needed!
+PRIVATE_KEY_PATH = "~/.ssh/id_rsa"    # Change me if needed!
+READ_PUBLIC_KEY = File.read(File.expand_path(PUBLIC_KEY_PATH)).strip
+
+# Reserved IPs from 192.168.56.1 to 192.168.56.10
+# Avoid these IPs for VMs
+
+# VM IPs
+CONTROL_PLANE_IP = "192.168.56.11"  # Starting after reserved IPs
+NODE1_IP = "192.168.56.12"
+NODE2_IP = "192.168.56.13"
+
+# Global Configurations
+Vagrant.configure("2") do |config|
+
+  # Global configurations
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.box_version = "202404.26.0"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 1024
+    vb.cpus = 2
+  end
+  config.vm.provision :shell, privileged: true, inline: $provision_all
+  config.vm.boot_timeout = 600
+
+  # Control Plane VM configuration
+  config.vm.define :controlplane do |cp|
+    cp.vm.hostname = "controlplane"
+    cp.vm.network :private_network, ip: CONTROL_PLANE_IP
+    cp.vm.provider "virtualbox" do |v|
+      v.memory = 2048
+    end
+    cp.vm.provision :file, source: PRIVATE_KEY_PATH, destination: "~/.ssh/"
+    cp.vm.provision :shell, inline: $provision_controlplane
+  end
+
+  # Node1 VM configuration
+  config.vm.define :node1 do |n1|
+    n1.vm.hostname = "node1"
+    n1.vm.network :private_network, ip: NODE1_IP
+    n1.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+    end
+    n1.vm.provision :shell, inline: $provision_node
+  end
+
+  # Node2 VM configuration
+  config.vm.define :node2 do |n2|
+    n2.vm.hostname = "node2"
+    n2.vm.network :private_network, ip: NODE2_IP
+    n2.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+    end
+    n2.vm.provision :shell, inline: $provision_node
+  end
+
+end
+
+# Provisioning scripts
+$provision_all = <<-SHELL
+  echo "[ALL|Task 1] Configure SSH Public Key authentication"
+  echo "#{READ_PUBLIC_KEY}" >> /home/vagrant/.ssh/authorized_keys
+  sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
+  sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/g' /etc/ssh/sshd_config
+  systemctl restart ssh.service
+  apt update -y
+SHELL
+
+$provision_controlplane = <<-SHELL
+  echo "[controlplane|Task 1] Setup Control Plane"
+  # Control plane-specific setup commands
+SHELL
+
+$provision_node = <<-SHELL
+  echo "[node|Task 1] Setup Node"
+  # Node-specific setup commands
+SHELL
+
