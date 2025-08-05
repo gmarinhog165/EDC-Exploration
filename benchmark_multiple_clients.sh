@@ -98,7 +98,8 @@ for ((i=1; i<=NUM_CLIENTES; i++)); do
     # Inicializa servidor Java
     echo "Iniciando servidor Java na porta $PORTA..."
     cd JavaEDCliente/
-    mvn exec:java -Dexec.mainClass="pt.uminho.di.Benchmark.Main" -Dexec.args="$PORTA" > "${BASE_DIR}/java_cliente_${i}.log" 2>&1 &
+    timestamp=$(date +"%Y-%m-%d_%H-%M-%S.%3N")
+mvn exec:java -Dexec.mainClass="pt.uminho.di.Benchmark.Main" -Dexec.args="$PORTA" > "${BASE_DIR}/java_cliente_${i}_${timestamp}.log" 2>&1 &
     PID_JAVA=$!
     PIDS_JAVA+=($PID_JAVA)
     cd "$BASE_DIR"
