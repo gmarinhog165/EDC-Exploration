@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.eclipse.edc.samples.transfer.streaming.http","l":"MongoDbDataPlaneExtension"},{"p":"org.eclipse.edc.samples.transfer.streaming.http","l":"MongoDbDataSource"},{"p":"org.eclipse.edc.samples.transfer.streaming.http","l":"MongoDbDataSourceFactory"}];updateSearchResults();
